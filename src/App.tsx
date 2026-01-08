@@ -1,4 +1,5 @@
 import { GameProvider, useGame } from './context/GameContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import EncounterTab from './components/tabs/EncounterTab';
 import PlayersTab from './components/tabs/PlayersTab';
 import DeathSavesTab from './components/tabs/DeathSavesTab';
@@ -7,6 +8,7 @@ import FeatsTab from './components/tabs/FeatsTab';
 import LinksTab from './components/tabs/LinksTab';
 import BastionTab from './components/tabs/BastionTab';
 import DataTab from './components/tabs/DataTab';
+import LoginPage from './pages/LoginPage';
 import { useState } from 'react';
 import {
   Container,
@@ -20,11 +22,19 @@ import {
   CssBaseline,
   ThemeProvider,
   createTheme,
+  Button,
+  Chip,
+  CircularProgress,
 } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
+
+type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 function AppContent() {
   const { darkMode, toggleDarkMode } = useGame();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
+  const [_localSyncStatus, _setLocalSyncStatus] = useState<SyncStatus>('idle');
 
   const theme = createTheme({
     palette: {
@@ -123,6 +133,32 @@ function AppContent() {
     setActiveTab(newValue);
   };
 
+  const getSyncStatusColor = () => {
+    switch (_localSyncStatus) {
+      case 'synced':
+        return 'success';
+      case 'syncing':
+        return 'info';
+      case 'error':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
+  const getSyncStatusLabel = () => {
+    switch (_localSyncStatus) {
+      case 'synced':
+        return '✓ Synced';
+      case 'syncing':
+        return '⟳ Syncing...';
+      case 'error':
+        return '✕ Error';
+      default:
+        return 'Offline';
+    }
+  };
+
   const tabs = [
     { label: 'Encounter', component: <EncounterTab /> },
     { label: 'Players', component: <PlayersTab /> },
@@ -138,15 +174,51 @@ function AppContent() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
           <Typography variant="h3" component="h1" sx={{ textAlign: 'center', flex: 1 }}>
             🛡️ DM Screen & 🐉 Encounter Tracker
           </Typography>
-          <FormControlLabel
-            control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
-            label="🌙 Dark Mode"
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <FormControlLabel
+              control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
+              label="🌙 Dark Mode"
+            />
+            <Button
+              size="small"
+              startIcon={<LogoutIcon />}
+              onClick={() => logout()}
+              variant="outlined"
+            >
+              Logout
+            </Button>
+          </Box>
         </Box>
+
+        {user && (
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Signed in as: <strong>{user.email}</strong>
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Chip
+                label={getSyncStatusLabel()}
+                color={getSyncStatusColor() as any}
+                size="small"
+                icon={_localSyncStatus === 'syncing' ? <CircularProgress size={20} /> : undefined}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  // Sync will be implemented with auth
+                }}
+                disabled={_localSyncStatus === 'syncing'}
+              >
+                Sync Now
+              </Button>
+            </Box>
+          </Box>
+        )}
 
         <Paper sx={{ borderRadius: 2 }}>
           <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
@@ -164,11 +236,31 @@ function AppContent() {
   );
 }
 
+function AppWithAuth() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return <AppContent />;
+}
+
 function App() {
   return (
-    <GameProvider>
-      <AppContent />
-    </GameProvider>
+    <AuthProvider>
+      <GameProvider>
+        <AppWithAuth />
+      </GameProvider>
+    </AuthProvider>
   );
 }
 

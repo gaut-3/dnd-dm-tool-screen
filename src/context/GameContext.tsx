@@ -188,8 +188,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [state.darkMode]);
 
   // Sync state
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
-  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncStatus, _setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [syncError, _setSyncError] = useState<string | null>(null);
 
   const manualSync = async () => {
     // This will be implemented when auth is available
@@ -460,7 +460,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     },
-    importAll: (data) => {
+     importAll: (data) => {
       setState({
         encounter: data.encounter || [],
         players: data.players || [],
@@ -472,6 +472,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         darkMode: data.darkMode || false,
       });
     },
+
+    // Sync actions
+    syncStatus,
+    syncError,
+    manualSync,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
