@@ -3,3 +3,21 @@ dist
 dist-ssr
 *.local
 node_modules
+
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.*.local
+
+# Firebase
+.firebase/
+.firebaserc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
