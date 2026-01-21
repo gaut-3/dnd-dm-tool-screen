@@ -26,10 +26,7 @@ export class SyncManager {
     onStatusChange: (status: SyncStatus) => void,
     onError: (error: string) => void
   ) {
-    // Initial sync
-    this.syncToFirebase(getGameState, onStatusChange, onError);
-
-    // Set up 5-minute auto-sync
+    // Set up 5-minute auto-sync (no initial sync on page reload)
     this.syncInterval = setInterval(() => {
       const currentHash = this.hashGameState(getGameState());
       if (currentHash !== this.lastSyncHash) {

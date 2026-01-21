@@ -1,4 +1,6 @@
-import { ReactNode, createContext, useContext, useState, useEffect } from 'react';
+import { ReactNode, createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { SyncManager } from '../services/syncManager';
+import { useAuth } from './AuthContext';
 
 export interface Character {
   name: string;
@@ -137,24 +139,25 @@ const INITIAL_STATE: GameState = {
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<GameState>(() => {
-    try {
-      return {
-        encounter: JSON.parse(localStorage.getItem(STORAGE_KEYS.encounter) || '[]'),
-        players: JSON.parse(localStorage.getItem(STORAGE_KEYS.players) || '[]'),
-        deathSaves: JSON.parse(localStorage.getItem(STORAGE_KEYS.deathSaves) || '[]'),
-        links: JSON.parse(localStorage.getItem(STORAGE_KEYS.links) || '[]'),
-        bastions: JSON.parse(localStorage.getItem(STORAGE_KEYS.bastions) || '[]'),
-        currentDay: parseInt(localStorage.getItem(STORAGE_KEYS.currentDay) || '0'),
-        sortBy: (localStorage.getItem(STORAGE_KEYS.sortBy) || 'initiative') as 'initiative' | 'name',
-        darkMode: localStorage.getItem(STORAGE_KEYS.darkMode) === 'true',
-      };
-    } catch {
-      return INITIAL_STATE;
-    }
-  });
+   const { user } = useAuth();
+   const [state, setState] = useState<GameState>(() => {
+     try {
+       return {
+         encounter: JSON.parse(localStorage.getItem(STORAGE_KEYS.encounter) || '[]'),
+         players: JSON.parse(localStorage.getItem(STORAGE_KEYS.players) || '[]'),
+         deathSaves: JSON.parse(localStorage.getItem(STORAGE_KEYS.deathSaves) || '[]'),
+         links: JSON.parse(localStorage.getItem(STORAGE_KEYS.links) || '[]'),
+         bastions: JSON.parse(localStorage.getItem(STORAGE_KEYS.bastions) || '[]'),
+         currentDay: parseInt(localStorage.getItem(STORAGE_KEYS.currentDay) || '0'),
+         sortBy: (localStorage.getItem(STORAGE_KEYS.sortBy) || 'initiative') as 'initiative' | 'name',
+         darkMode: localStorage.getItem(STORAGE_KEYS.darkMode) === 'true',
+       };
+     } catch {
+       return INITIAL_STATE;
+     }
+   });
 
-  // Persist state changes
+   // Persist state changes
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.encounter, JSON.stringify(state.encounter));
   }, [state.encounter]);
@@ -187,15 +190,59 @@ export function GameProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.darkMode, state.darkMode ? 'true' : 'false');
   }, [state.darkMode]);
 
-  // Sync state
-  const [syncStatus, _setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
-  const [syncError, _setSyncError] = useState<string | null>(null);
+    // Sync state
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+    const [syncError, setSyncError] = useState<string | null>(null);
 
-  const manualSync = async () => {
-    // This will be implemented when auth is available
-    // For now, it's a placeholder
-    console.log('Manual sync triggered');
-  };
+    // Use ref to maintain SyncManager instance across renders
+    const syncManagerRef = useRef<SyncManager | null>(null);
+
+    // Keep a ref to current state so callbacks always get latest state
+    const stateRef = useRef<GameState>(state);
+    useEffect(() => {
+      stateRef.current = state;
+    }, [state]);
+
+    // Initialize SyncManager when user authenticates (only once)
+    useEffect(() => {
+      if (user?.uid) {
+        // Only create SyncManager if it doesn't exist
+        if (!syncManagerRef.current) {
+          syncManagerRef.current = new SyncManager(user.uid);
+
+          // Start auto-sync with 5-minute interval
+          // Use stateRef so it always gets the latest state
+          syncManagerRef.current.startAutoSync(
+            () => stateRef.current,
+            setSyncStatus,
+            setSyncError
+          );
+        }
+
+        return () => {
+          // Don't stop sync on unmount, let it continue
+        };
+      } else {
+        // Stop sync if user logs out
+        if (syncManagerRef.current) {
+          syncManagerRef.current.stopAutoSync();
+          syncManagerRef.current = null;
+        }
+      }
+    }, [user?.uid]);
+
+    const manualSync = useCallback(async (): Promise<void> => {
+      if (!syncManagerRef.current) {
+        setSyncError('Sync manager not initialized');
+        return;
+      }
+      // Use stateRef to get latest state
+      await syncManagerRef.current.manualSync(
+        () => stateRef.current,
+        setSyncStatus,
+        setSyncError
+      );
+    }, []);
 
   const value: GameContextType = {
     ...state,

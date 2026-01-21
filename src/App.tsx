@@ -9,7 +9,7 @@ import LinksTab from './components/tabs/LinksTab';
 import BastionTab from './components/tabs/BastionTab';
 import DataTab from './components/tabs/DataTab';
 import LoginPage from './pages/LoginPage';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -25,16 +25,31 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 
-type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
-
 function AppContent() {
-  const { darkMode, toggleDarkMode } = useGame();
-  const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState(0);
-  const [_localSyncStatus, _setLocalSyncStatus] = useState<SyncStatus>('idle');
+   const { darkMode, toggleDarkMode, syncStatus, syncError, manualSync } = useGame();
+   const { user, logout } = useAuth();
+   const [activeTab, setActiveTab] = useState(0);
+   const [toastMessage, setToastMessage] = useState<string | null>(null);
+   const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info'>('success');
+   const [showToast, setShowToast] = useState(false);
+
+   // Show toast notifications for sync status
+   useEffect(() => {
+     if (syncStatus === 'synced') {
+       setToastMessage('✓ Data synced successfully');
+       setToastSeverity('success');
+       setShowToast(true);
+     } else if (syncStatus === 'error' && syncError) {
+       setToastMessage(`✕ Sync failed: ${syncError}`);
+       setToastSeverity('error');
+       setShowToast(true);
+     }
+   }, [syncStatus, syncError]);
 
   const theme = createTheme({
     palette: {
@@ -133,31 +148,31 @@ function AppContent() {
     setActiveTab(newValue);
   };
 
-  const getSyncStatusColor = () => {
-    switch (_localSyncStatus) {
-      case 'synced':
-        return 'success';
-      case 'syncing':
-        return 'info';
-      case 'error':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
+   const getSyncStatusColor = () => {
+     switch (syncStatus) {
+       case 'synced':
+         return 'success';
+       case 'syncing':
+         return 'info';
+       case 'error':
+         return 'error';
+       default:
+         return 'default';
+     }
+   };
 
-  const getSyncStatusLabel = () => {
-    switch (_localSyncStatus) {
-      case 'synced':
-        return '✓ Synced';
-      case 'syncing':
-        return '⟳ Syncing...';
-      case 'error':
-        return '✕ Error';
-      default:
-        return 'Offline';
-    }
-  };
+   const getSyncStatusLabel = () => {
+     switch (syncStatus) {
+       case 'synced':
+         return '✓ Synced';
+       case 'syncing':
+         return '⟳ Syncing...';
+       case 'error':
+         return '✕ Error';
+       default:
+         return 'Offline';
+     }
+   };
 
   const tabs = [
     { label: 'Encounter', component: <EncounterTab /> },
@@ -199,40 +214,53 @@ function AppContent() {
             <Typography variant="body2" color="text.secondary">
               Signed in as: <strong>{user.email}</strong>
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Chip
-                label={getSyncStatusLabel()}
-                color={getSyncStatusColor() as any}
-                size="small"
-                icon={_localSyncStatus === 'syncing' ? <CircularProgress size={20} /> : undefined}
-              />
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => {
-                  // Sync will be implemented with auth
-                }}
-                disabled={_localSyncStatus === 'syncing'}
-              >
-                Sync Now
-              </Button>
-            </Box>
+             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+               <Chip
+                 label={getSyncStatusLabel()}
+                 color={getSyncStatusColor() as any}
+                 size="small"
+                 icon={syncStatus === 'syncing' ? <CircularProgress size={20} /> : undefined}
+               />
+               <Button
+                 size="small"
+                 variant="outlined"
+                 onClick={manualSync}
+                 disabled={syncStatus === 'syncing'}
+               >
+                 Sync Now
+               </Button>
+             </Box>
           </Box>
         )}
 
-        <Paper sx={{ borderRadius: 2 }}>
-          <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
-            {tabs.map((tab, index) => (
-              <Tab key={index} label={tab.label} />
-            ))}
-          </Tabs>
+         <Paper sx={{ borderRadius: 2 }}>
+           <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
+             {tabs.map((tab, index) => (
+               <Tab key={index} label={tab.label} />
+             ))}
+           </Tabs>
 
-          <Box sx={{ p: 3 }}>
-            {tabs[activeTab].component}
-          </Box>
-        </Paper>
-      </Container>
-    </ThemeProvider>
+           <Box sx={{ p: 3 }}>
+             {tabs[activeTab].component}
+           </Box>
+         </Paper>
+
+         <Snackbar
+           open={showToast}
+           autoHideDuration={4000}
+           onClose={() => setShowToast(false)}
+           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+         >
+           <Alert
+             onClose={() => setShowToast(false)}
+             severity={toastSeverity}
+             sx={{ width: '100%' }}
+           >
+             {toastMessage}
+           </Alert>
+         </Snackbar>
+       </Container>
+     </ThemeProvider>
   );
 }
 
