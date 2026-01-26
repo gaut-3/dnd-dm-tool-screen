@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "target": "DnD-Tools",
     "public": "dist",
     "ignore": [
       "firebase.json",
