@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "target": "dnd-dm-screen",
+    "target": "DnD-Tools",
     "public": "dist",
     "ignore": [
       "firebase.json",
