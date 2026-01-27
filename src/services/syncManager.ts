@@ -84,10 +84,12 @@ export class SyncManager {
         lastSync: Timestamp.now(),
       };
 
-      await setDoc(doc(db, 'users', this.userId), syncData, { merge: false });
+       await setDoc(doc(db, 'users', this.userId), syncData, { merge: false });
 
-      this.lastSyncHash = currentHash;
-      onStatusChange('synced');
+       this.lastSyncHash = currentHash;
+       // Update sync timestamp for conflict detection
+       localStorage.setItem(`lastSync_${this.userId}`, new Date().toISOString());
+       onStatusChange('synced');
 
       // Reset to idle after 2 seconds
       setTimeout(() => onStatusChange('idle'), 2000);
@@ -101,26 +103,93 @@ export class SyncManager {
     }
   }
 
-  /**
-   * Load game state from Firestore
-   */
-  async loadFromFirebase(): Promise<GameState | null> {
-    try {
-      const docSnap = await getDoc(doc(db, 'users', this.userId));
+   /**
+    * Load game state from Firestore
+    */
+   async loadFromFirebase(): Promise<GameState | null> {
+     try {
+       const docSnap = await getDoc(doc(db, 'users', this.userId));
 
-      if (docSnap.exists()) {
-        const data = docSnap.data() as SyncData;
-        this.lastSyncHash = this.hashGameState(data);
-        return data;
-      }
+       if (docSnap.exists()) {
+         const data = docSnap.data() as SyncData;
+         this.lastSyncHash = this.hashGameState(data);
+         return data;
+       }
 
-      return null;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load from Firebase';
-      console.error('Load error:', errorMessage);
-      throw error;
-    }
-  }
+       return null;
+     } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : 'Failed to load from Firebase';
+       console.error('Load error:', errorMessage);
+       throw error;
+     }
+   }
+
+   /**
+    * Load game state from Firestore with conflict detection
+    * Returns remote data and conflict info for user decision
+    */
+   async loadWithConflictResolution(
+     localGameState: GameState
+   ): Promise<{
+     remoteData: GameState | null;
+     hasConflict: boolean;
+     localIsNewer: boolean;
+   }> {
+     try {
+       const docSnap = await getDoc(doc(db, 'users', this.userId));
+
+       if (!docSnap.exists()) {
+         return { remoteData: null, hasConflict: false, localIsNewer: false };
+       }
+
+       const remoteData = docSnap.data() as SyncData;
+       const remoteLastSync = remoteData.lastSync?.toDate() || new Date(0);
+
+       // Get local last-sync timestamp (stored when we last synced successfully)
+       const localLastSyncStr = localStorage.getItem(`lastSync_${this.userId}`);
+       const localLastSync = localLastSyncStr ? new Date(localLastSyncStr) : new Date(0);
+
+       // Check if both have meaningful data by comparing against initial empty state
+       const emptyState = {
+         encounter: [],
+         players: [],
+         deathSaves: [],
+         links: [],
+         bastions: [],
+         currentDay: 0,
+         sortBy: 'initiative',
+         darkMode: false,
+         currentRound: 0,
+         currentTurnIndex: -1,
+       };
+
+       const localHasData = JSON.stringify(localGameState) !== JSON.stringify(emptyState);
+       const remoteHasData = remoteData && (remoteData.encounter?.length > 0 || remoteData.players?.length > 0 || remoteData.deathSaves?.length > 0);
+
+       // Conflict = both have data AND sync times differ
+       const hasConflict = localHasData && remoteHasData && remoteLastSync !== localLastSync;
+       const localIsNewer = localLastSync > remoteLastSync;
+
+       // Cache the remote hash for next sync
+       this.lastSyncHash = this.hashGameState(remoteData);
+
+       return {
+         remoteData: remoteData || null,
+         hasConflict,
+         localIsNewer,
+       };
+     } catch (error) {
+       console.error('Conflict resolution error:', error);
+       throw error;
+     }
+   }
+
+   /**
+    * Update lastSync timestamp in localStorage after successful sync
+    */
+   updateLastSyncTime(): void {
+     localStorage.setItem(`lastSync_${this.userId}`, new Date().toISOString());
+   }
 
   /**
    * Create hash of game state for change detection

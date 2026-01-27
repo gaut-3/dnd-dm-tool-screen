@@ -9,6 +9,7 @@ import LinksTab from './components/tabs/LinksTab';
 import BastionTab from './components/tabs/BastionTab';
 import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
 import DataTab from './components/tabs/DataTab';
+import ConflictResolutionDialog from './components/ConflictResolutionDialog';
 import LoginPage from './pages/LoginPage';
 import { useState, useEffect, ReactNode } from 'react';
 import {
@@ -32,7 +33,7 @@ import {
 import LogoutIcon from '@mui/icons-material/Logout';
 
 function AppContent() {
-   const { darkMode, toggleDarkMode, syncStatus, syncError, manualSync } = useGame();
+   const { darkMode, toggleDarkMode, syncStatus, syncError, manualSync, conflictState, handleConflictResolution } = useGame();
    const { user, logout } = useAuth();
    const [activeTab, setActiveTab] = useState(0);
    const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -247,21 +248,30 @@ function AppContent() {
            </Box>
          </Paper>
 
-         <Snackbar
-           open={showToast}
-           autoHideDuration={4000}
-           onClose={() => setShowToast(false)}
-           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-         >
-           <Alert
-             onClose={() => setShowToast(false)}
-             severity={toastSeverity}
-             sx={{ width: '100%' }}
-           >
-             {toastMessage}
-           </Alert>
-         </Snackbar>
-       </Container>
+          <Snackbar
+            open={showToast}
+            autoHideDuration={4000}
+            onClose={() => setShowToast(false)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Alert
+              onClose={() => setShowToast(false)}
+              severity={toastSeverity}
+              sx={{ width: '100%' }}
+            >
+              {toastMessage}
+            </Alert>
+          </Snackbar>
+
+          {conflictState && (
+            <ConflictResolutionDialog
+              open={conflictState.open}
+              localIsNewer={conflictState.localIsNewer}
+              onKeepLocal={() => handleConflictResolution(false)}
+              onUseCloud={() => handleConflictResolution(true)}
+            />
+          )}
+        </Container>
      </ThemeProvider>
   );
 }

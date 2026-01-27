@@ -119,6 +119,14 @@ interface GameContextType extends GameState {
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
   syncError: string | null;
   manualSync: () => Promise<void>;
+
+  // Conflict resolution
+  conflictState: {
+    open: boolean;
+    localIsNewer: boolean;
+    remoteData: GameState | null;
+  } | null;
+  handleConflictResolution: (useCloud: boolean) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -211,59 +219,148 @@ export function GameProvider({ children }: { children: ReactNode }) {
      localStorage.setItem(STORAGE_KEYS.currentTurnIndex, String(state.currentTurnIndex));
    }, [state.currentTurnIndex]);
 
-     // Sync state
-     const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
-     const [syncError, setSyncError] = useState<string | null>(null);
+      // Sync state
+      const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+      const [syncError, setSyncError] = useState<string | null>(null);
+
+      // Conflict resolution state
+      const [conflictState, setConflictState] = useState<{
+        open: boolean;
+        localIsNewer: boolean;
+        remoteData: GameState | null;
+      } | null>(null);
 
     // Use ref to maintain SyncManager instance across renders
     const syncManagerRef = useRef<SyncManager | null>(null);
 
-    // Keep a ref to current state so callbacks always get latest state
-    const stateRef = useRef<GameState>(state);
-    useEffect(() => {
-      stateRef.current = state;
-    }, [state]);
+      // Keep a ref to current state so callbacks always get latest state
+      const stateRef = useRef<GameState>(state);
+      useEffect(() => {
+        stateRef.current = state;
+      }, [state]);
 
-    // Initialize SyncManager when user authenticates (only once)
-    useEffect(() => {
-      if (user?.uid) {
-        // Only create SyncManager if it doesn't exist
-        if (!syncManagerRef.current) {
-          syncManagerRef.current = new SyncManager(user.uid);
+      // Initialize SyncManager when user authenticates (only once)
+      useEffect(() => {
+        if (user?.uid) {
+          // Only create SyncManager if it doesn't exist
+          if (!syncManagerRef.current) {
+            syncManagerRef.current = new SyncManager(user.uid);
 
-          // Start auto-sync with 5-minute interval
-          // Use stateRef so it always gets the latest state
-          syncManagerRef.current.startAutoSync(
-            () => stateRef.current,
-            setSyncStatus,
-            setSyncError
-          );
+            // Load data from Firestore (source of truth) on first login
+            (async () => {
+              try {
+                const resolution = await syncManagerRef.current!.loadWithConflictResolution(state);
+                
+                if (resolution.hasConflict) {
+                  // Show dialog and wait for user decision
+                  setConflictState({
+                    open: true,
+                    localIsNewer: resolution.localIsNewer,
+                    remoteData: resolution.remoteData,
+                  });
+                  // Don't start sync yet - wait for user decision
+                } else if (resolution.remoteData) {
+                  // No conflict, just load remote data (Firestore is source of truth)
+                  setState({
+                    encounter: resolution.remoteData.encounter || [],
+                    players: resolution.remoteData.players || [],
+                    deathSaves: resolution.remoteData.deathSaves || [],
+                    links: resolution.remoteData.links || [],
+                    bastions: resolution.remoteData.bastions || [],
+                    currentDay: resolution.remoteData.currentDay || 0,
+                    sortBy: resolution.remoteData.sortBy || 'initiative',
+                    darkMode: resolution.remoteData.darkMode || false,
+                    currentRound: resolution.remoteData.currentRound || 0,
+                    currentTurnIndex: resolution.remoteData.currentTurnIndex || -1,
+                  });
+                  syncManagerRef.current!.updateLastSyncTime();
+                  // Now start auto-sync
+                  syncManagerRef.current!.startAutoSync(
+                    () => stateRef.current,
+                    setSyncStatus,
+                    setSyncError
+                  );
+                } else {
+                  // No remote data, start with local (first time)
+                  syncManagerRef.current!.startAutoSync(
+                    () => stateRef.current,
+                    setSyncStatus,
+                    setSyncError
+                  );
+                }
+              } catch (error) {
+                console.error('Failed to load from Firebase:', error);
+                setSyncError('Failed to load cloud data, using local data');
+                syncManagerRef.current!.startAutoSync(
+                  () => stateRef.current,
+                  setSyncStatus,
+                  setSyncError
+                );
+              }
+            })();
+          }
+
+          return () => {
+            // Don't stop sync on unmount, let it continue
+          };
+        } else {
+          // Stop sync if user logs out
+          if (syncManagerRef.current) {
+            syncManagerRef.current.stopAutoSync();
+            syncManagerRef.current = null;
+          }
         }
+      }, [user?.uid]);
 
-        return () => {
-          // Don't stop sync on unmount, let it continue
-        };
-      } else {
-        // Stop sync if user logs out
-        if (syncManagerRef.current) {
-          syncManagerRef.current.stopAutoSync();
-          syncManagerRef.current = null;
-        }
-      }
-    }, [user?.uid]);
+     const manualSync = useCallback(async (): Promise<void> => {
+       if (!syncManagerRef.current) {
+         setSyncError('Sync manager not initialized');
+         return;
+       }
+       // Use stateRef to get latest state
+       await syncManagerRef.current.manualSync(
+         () => stateRef.current,
+         setSyncStatus,
+         setSyncError
+       );
+      }, []);
 
-    const manualSync = useCallback(async (): Promise<void> => {
-      if (!syncManagerRef.current) {
-        setSyncError('Sync manager not initialized');
-        return;
-      }
-      // Use stateRef to get latest state
-      await syncManagerRef.current.manualSync(
-        () => stateRef.current,
-        setSyncStatus,
-        setSyncError
-      );
-     }, []);
+     /**
+      * Handle user decision on conflict (keep local or use cloud)
+      */
+     const handleConflictResolution = useCallback((useCloud: boolean) => {
+       if (useCloud && conflictState?.remoteData) {
+         // Use cloud data
+         setState({
+           encounter: conflictState.remoteData.encounter || [],
+           players: conflictState.remoteData.players || [],
+           deathSaves: conflictState.remoteData.deathSaves || [],
+           links: conflictState.remoteData.links || [],
+           bastions: conflictState.remoteData.bastions || [],
+           currentDay: conflictState.remoteData.currentDay || 0,
+           sortBy: conflictState.remoteData.sortBy || 'initiative',
+           darkMode: conflictState.remoteData.darkMode || false,
+           currentRound: conflictState.remoteData.currentRound || 0,
+           currentTurnIndex: conflictState.remoteData.currentTurnIndex || -1,
+         });
+         setSyncError('Using cloud data');
+         syncManagerRef.current?.updateLastSyncTime();
+       } else {
+         // Keep local data - will sync to cloud on next sync
+         setSyncError('Keeping local data. It will sync to cloud.');
+       }
+       
+       setConflictState(null);
+       
+       // Start auto-sync after conflict resolution
+       if (syncManagerRef.current) {
+         syncManagerRef.current.startAutoSync(
+           () => stateRef.current,
+           setSyncStatus,
+           setSyncError
+         );
+       }
+     }, [conflictState]);
 
      /**
       * Get the original index of the first creature when sorted by current sortBy mode
@@ -603,11 +700,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
        });
      },
 
-    // Sync actions
-    syncStatus,
-    syncError,
-    manualSync,
-  };
+     // Sync actions
+     syncStatus,
+     syncError,
+     manualSync,
+
+     // Conflict resolution
+     conflictState,
+     handleConflictResolution,
+   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
