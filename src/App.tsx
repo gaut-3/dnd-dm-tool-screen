@@ -54,28 +54,106 @@ function AppContent() {
       }
     }, [syncStatus, syncError, syncDidUpload]);
 
+  const themeColors = darkMode
+    ? {
+        background: '#0b0f14',
+        paper: '#111822',
+        surface: 'rgba(14, 20, 31, 0.86)',
+        panel: 'rgba(18, 26, 40, 0.82)',
+        border: 'rgba(148, 183, 222, 0.24)',
+        borderStrong: 'rgba(196, 222, 244, 0.35)',
+        accent: '#f4c77a',
+        accentStrong: '#f7d9a4',
+        secondary: '#79b7d9',
+        text: '#e7eef8',
+        textMuted: 'rgba(230, 238, 248, 0.78)',
+        shadow: 'rgba(3, 6, 12, 0.6)',
+        glow: 'rgba(48, 71, 96, 0.6)',
+        tabActive: 'rgba(26, 36, 54, 0.9)',
+        tabHover: 'rgba(24, 34, 52, 0.7)',
+      }
+    : {
+        background: '#f6efe6',
+        paper: '#fbf6ef',
+        surface: 'rgba(255, 250, 242, 0.92)',
+        panel: 'rgba(253, 249, 242, 0.9)',
+        border: 'rgba(155, 115, 71, 0.28)',
+        borderStrong: 'rgba(155, 115, 71, 0.45)',
+        accent: '#8d5b2c',
+        accentStrong: '#a5652f',
+        secondary: '#3d6f8f',
+        text: '#2b2117',
+        textMuted: 'rgba(43, 33, 23, 0.72)',
+        shadow: 'rgba(39, 29, 17, 0.16)',
+        glow: 'rgba(170, 122, 72, 0.24)',
+        tabActive: 'rgba(255, 248, 236, 0.96)',
+        tabHover: 'rgba(248, 239, 224, 0.82)',
+      };
+
   const theme = createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: darkMode ? '#f4c77a' : '#8d5b2c',
+        main: themeColors.accent,
       },
       secondary: {
-        main: darkMode ? '#79b7d9' : '#3d6f8f',
+        main: themeColors.secondary,
       },
       background: {
-        default: darkMode ? '#0b0f14' : '#f6efe6',
-        paper: darkMode ? '#111822' : '#fbf6ef',
+        default: themeColors.background,
+        paper: themeColors.paper,
       },
-      divider: darkMode ? 'rgba(152, 180, 214, 0.18)' : 'rgba(93, 72, 50, 0.2)',
+      divider: themeColors.border,
+      text: {
+        primary: themeColors.text,
+        secondary: themeColors.textMuted,
+      },
     },
     typography: {
-      fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
+      fontFamily: '"EB Garamond", "Garamond", "Georgia", serif',
+      h1: {
+        fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
+        fontWeight: 700,
+        letterSpacing: '0.05em',
+      },
+      h2: {
+        fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
+        fontWeight: 700,
+        letterSpacing: '0.05em',
+      },
       h3: {
+        fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
         fontWeight: 700,
         letterSpacing: '0.06em',
       },
+      h4: {
+        fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
+        fontWeight: 700,
+        letterSpacing: '0.04em',
+      },
       h5: {
+        fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
+        fontWeight: 600,
+      },
+      h6: {
+        fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
+        fontWeight: 600,
+      },
+      body1: {
+        fontSize: '1rem',
+        lineHeight: 1.6,
+      },
+      body2: {
+        fontSize: '0.95rem',
+        lineHeight: 1.55,
+      },
+      subtitle1: {
+        fontSize: '1.02rem',
+        lineHeight: 1.55,
+      },
+      subtitle2: {
+        fontSize: '0.95rem',
+        lineHeight: 1.5,
         fontWeight: 600,
       },
     },
@@ -83,13 +161,37 @@ function AppContent() {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            backgroundColor: darkMode ? '#0b0f14' : '#f6efe6',
-            backgroundImage: `linear-gradient(135deg, rgba(9, 12, 18, 0.82) 0%, rgba(13, 18, 26, 0.68) 40%, rgba(20, 26, 36, 0.6) 100%), url(${backgroundImageUrl})`,
+            backgroundColor: themeColors.background,
+            backgroundImage: `radial-gradient(circle at top, ${
+              darkMode
+                ? 'rgba(6, 8, 12, 0.95)'
+                : 'rgba(255, 248, 236, 0.92)'
+            } 0%, ${
+              darkMode
+                ? 'rgba(6, 8, 12, 0.35)'
+                : 'rgba(245, 236, 224, 0.4)'
+            } 55%, ${
+              darkMode
+                ? 'rgba(6, 8, 12, 0.85)'
+                : 'rgba(229, 214, 196, 0.55)'
+            } 100%), linear-gradient(135deg, ${
+              darkMode
+                ? 'rgba(10, 14, 20, 0.88)'
+                : 'rgba(253, 247, 238, 0.9)'
+            } 0%, ${
+              darkMode
+                ? 'rgba(16, 22, 32, 0.7)'
+                : 'rgba(243, 233, 219, 0.82)'
+            } 60%, ${
+              darkMode
+                ? 'rgba(12, 16, 24, 0.82)'
+                : 'rgba(233, 220, 203, 0.7)'
+            } 100%), url(${backgroundImageUrl})`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundSize: 'cover',
             backgroundAttachment: 'fixed',
-            color: darkMode ? '#e7eef8' : '#1f1a13',
+            color: themeColors.text,
             minHeight: '100%',
           },
           '#root': {
@@ -100,13 +202,14 @@ function AppContent() {
       MuiCard: {
         styleOverrides: {
           root: {
-            backgroundColor: darkMode ? 'rgba(18, 26, 40, 0.82)' : 'rgba(253, 249, 242, 0.88)',
-            border: darkMode ? '1px solid rgba(148, 183, 222, 0.25)' : '1px solid rgba(155, 115, 71, 0.3)',
-            boxShadow: darkMode ? '0 10px 30px rgba(3, 6, 12, 0.7)' : '0 12px 28px rgba(39, 29, 17, 0.18)',
+            backgroundColor: themeColors.panel,
+            border: `1px solid ${themeColors.border}`,
+            borderRadius: 16,
+            boxShadow: `0 16px 32px ${themeColors.shadow}`,
             backdropFilter: 'blur(6px)',
             '&:hover': {
-              boxShadow: darkMode ? '0 14px 36px rgba(3, 6, 12, 0.8)' : '0 16px 34px rgba(39, 29, 17, 0.24)',
-              borderColor: darkMode ? 'rgba(196, 222, 244, 0.35)' : 'rgba(155, 115, 71, 0.45)',
+              boxShadow: `0 20px 36px ${themeColors.shadow}`,
+              borderColor: themeColors.borderStrong,
             },
           },
         },
@@ -114,11 +217,12 @@ function AppContent() {
       MuiPaper: {
         styleOverrides: {
           root: {
-            backgroundColor: darkMode ? 'rgba(13, 19, 29, 0.84)' : 'rgba(253, 249, 242, 0.9)',
+            backgroundColor: themeColors.surface,
             backgroundImage: darkMode
               ? 'linear-gradient(145deg, rgba(20, 28, 41, 0.92) 0%, rgba(12, 18, 28, 0.95) 100%)'
               : 'linear-gradient(145deg, rgba(255, 252, 248, 0.96) 0%, rgba(245, 236, 224, 0.92) 100%)',
-            border: darkMode ? '1px solid rgba(152, 180, 214, 0.22)' : '1px solid rgba(155, 115, 71, 0.24)',
+            border: `1px solid ${themeColors.border}`,
+            borderRadius: 18,
             backdropFilter: 'blur(8px)',
           },
         },
@@ -128,13 +232,17 @@ function AppContent() {
           root: {
             '& .MuiOutlinedInput-root': {
               backgroundColor: darkMode ? 'rgba(21, 30, 44, 0.9)' : 'rgba(255, 251, 246, 0.96)',
-              borderColor: darkMode ? 'rgba(148, 183, 222, 0.3)' : 'rgba(155, 115, 71, 0.3)',
+              borderColor: themeColors.border,
               '&:hover fieldset': {
-                borderColor: darkMode ? '#f4c77a' : '#8d5b2c',
+                borderColor: themeColors.accent,
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: themeColors.accentStrong,
+                boxShadow: `0 0 0 3px ${themeColors.glow}`,
               },
             },
             '& .MuiOutlinedInput-input': {
-              color: darkMode ? '#e7eef8' : '#2b2117',
+              color: themeColors.text,
             },
           },
         },
@@ -144,6 +252,8 @@ function AppContent() {
           root: {
             textTransform: 'none',
             fontWeight: 600,
+            borderRadius: 12,
+            letterSpacing: '0.02em',
           },
         },
       },
@@ -151,7 +261,7 @@ function AppContent() {
         styleOverrides: {
           root: {
             backgroundColor: darkMode ? 'rgba(26, 36, 54, 0.92)' : 'rgba(253, 247, 238, 0.96)',
-            color: darkMode ? '#e7eef8' : '#2b2117',
+            color: themeColors.text,
           },
         },
       },
@@ -160,7 +270,7 @@ function AppContent() {
           root: {
             '& .MuiOutlinedInput-root': {
               backgroundColor: darkMode ? 'rgba(21, 30, 44, 0.9)' : 'rgba(255, 251, 246, 0.96)',
-              borderColor: darkMode ? 'rgba(148, 183, 222, 0.3)' : 'rgba(155, 115, 71, 0.3)',
+              borderColor: themeColors.border,
             },
           },
         },
@@ -168,10 +278,14 @@ function AppContent() {
       MuiTabs: {
         styleOverrides: {
           root: {
-            borderBottom: darkMode ? '1px solid rgba(148, 183, 222, 0.2)' : '1px solid rgba(155, 115, 71, 0.2)',
+            borderBottom: 'none',
+            padding: '6px',
+            borderRadius: 18,
+            backgroundColor: themeColors.panel,
+            boxShadow: `inset 0 0 0 1px ${themeColors.border}`,
           },
           indicator: {
-            backgroundColor: darkMode ? '#f4c77a' : '#8d5b2c',
+            display: 'none',
           },
         },
       },
@@ -180,9 +294,20 @@ function AppContent() {
           root: {
             textTransform: 'none',
             fontWeight: 600,
-            color: darkMode ? 'rgba(230, 238, 248, 0.82)' : 'rgba(43, 33, 23, 0.78)',
+            minHeight: 44,
+            borderRadius: 14,
+            margin: '4px',
+            padding: '8px 18px',
+            color: themeColors.textMuted,
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              color: themeColors.text,
+              backgroundColor: themeColors.tabHover,
+            },
             '&.Mui-selected': {
-              color: darkMode ? '#f7d9a4' : '#8d5b2c',
+              color: themeColors.accent,
+              backgroundColor: themeColors.tabActive,
+              boxShadow: `0 8px 16px ${themeColors.shadow}`,
             },
           },
         },
@@ -235,49 +360,61 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box
+      <Container maxWidth="lg" sx={{ py: 4, animation: 'containerFadeIn 600ms ease both' }}>
+        <Paper
+          elevation={0}
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: { xs: 'stretch', sm: 'center' },
             mb: 4,
-            gap: 2,
+            px: { xs: 2, sm: 3 },
+            py: { xs: 2, sm: 2.5 },
+            borderRadius: 3,
+            boxShadow: `0 18px 40px ${themeColors.shadow}`,
+            border: `1px solid ${themeColors.border}`,
+            backgroundColor: themeColors.panel,
           }}
         >
-          <Typography
-            variant="h3"
-            component="h1"
-            sx={{ textAlign: { xs: 'center', sm: 'left' }, flex: { sm: 1 } }}
-          >
-            🛡️ DM Screen & 🐉 Encounter Tracker
-          </Typography>
           <Box
             sx={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 2,
+              flexDirection: { xs: 'column', sm: 'row' },
               flexWrap: 'wrap',
-              justifyContent: { xs: 'center', sm: 'flex-end' },
-              width: { xs: '100%', sm: 'auto' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: 2,
             }}
           >
-            <FormControlLabel
-              control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
-              label="🌙 Dark Mode"
-            />
-            <Button
-              size="small"
-              startIcon={<LogoutIcon />}
-              onClick={() => logout()}
-              variant="outlined"
+            <Typography
+              variant="h3"
+              component="h1"
+              sx={{ textAlign: { xs: 'center', sm: 'left' }, flex: { sm: 1 } }}
             >
-              Logout
-            </Button>
+              🛡️ DM Screen & 🐉 Encounter Tracker
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+                justifyContent: { xs: 'center', sm: 'flex-end' },
+                width: { xs: '100%', sm: 'auto' },
+              }}
+            >
+              <FormControlLabel
+                control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
+                label="🌙 Dark Mode"
+              />
+              <Button
+                size="small"
+                startIcon={<LogoutIcon />}
+                onClick={() => logout()}
+                variant="outlined"
+              >
+                Logout
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </Paper>
 
         {user && (
           <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

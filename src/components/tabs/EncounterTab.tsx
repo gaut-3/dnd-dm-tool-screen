@@ -16,6 +16,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Chip,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -328,29 +329,59 @@ export default function EncounterTab() {
         {sorted.map((char, index) => {
             const percent = char.maxHp === 0 ? 0 : Math.round((char.hp / char.maxHp) * 100);
             const progressColor = percent > 60 ? 'success' : percent > 30 ? 'warning' : 'error';
-           const statusColor = char.hp === 0 ? 'error' : 'success';
+            const statusColor = char.hp === 0 ? 'error' : 'success';
+            const isCurrentTurn = currentTurnSortedIndex === index && currentRound > 0;
 
-           return (
-             <Card sx={{
-               border: currentTurnSortedIndex === index && currentRound > 0 
-                 ? '2px solid gold' 
-                 : '1px solid #4a5578',
-               boxShadow: currentTurnSortedIndex === index && currentRound > 0
-                 ? '0 0 20px rgba(255, 215, 0, 0.5)'
-                 : '0 4px 20px rgba(0, 0, 0, 0.5)',
-               transition: 'all 0.3s ease',
-               '&:hover': {
-                 boxShadow: '0 6px 30px rgba(0, 0, 0, 0.7)',
-                 borderColor: '#6b7ea8',
-               },
-             }} key={char.originalIndex}>
-               <CardHeader 
-                 title={
-                   currentTurnSortedIndex === index && currentRound > 0
-                     ? `${char.name} 🎯`
-                     : char.name
-                 } 
-               />
+            return (
+              <Card
+                sx={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  boxShadow: isCurrentTurn
+                    ? '0 18px 36px rgba(0, 0, 0, 0.45)'
+                    : '0 10px 26px rgba(0, 0, 0, 0.35)',
+                  transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+                  animation: 'cardFadeIn 520ms ease both',
+                  animationDelay: `${index * 45}ms`,
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 18px 34px rgba(0, 0, 0, 0.5)',
+                    borderColor: (theme) => theme.palette.primary.main,
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    height: '100%',
+                    width: '6px',
+                    background: isCurrentTurn
+                      ? 'linear-gradient(180deg, rgba(247, 217, 164, 0.9) 0%, rgba(141, 91, 44, 0.9) 100%)'
+                      : 'transparent',
+                    opacity: isCurrentTurn ? 1 : 0,
+                  },
+                }}
+                key={char.originalIndex}
+              >
+                <CardHeader 
+                  title={
+                    isCurrentTurn
+                      ? `${char.name} 🎯`
+                      : char.name
+                  } 
+                  action={
+                    isCurrentTurn ? (
+                      <Chip
+                        size="small"
+                        label="Current Turn"
+                        variant="outlined"
+                        color="secondary"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    ) : undefined
+                  }
+                />
               <CardContent>
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2">AC: <strong>{char.ac ?? '-'}</strong></Typography>
