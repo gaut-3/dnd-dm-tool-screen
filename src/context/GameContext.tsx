@@ -151,7 +151,7 @@ const INITIAL_STATE: GameState = {
 
 export function GameProvider({ children }: { children: ReactNode }) {
    const { user } = useAuth();
-    const [state, setState] = useState<GameState>(() => {
+     const [state, setState] = useState<GameState>(() => {
       try {
         return {
           encounter: JSON.parse(localStorage.getItem(STORAGE_KEYS.encounter) || '[]'),
