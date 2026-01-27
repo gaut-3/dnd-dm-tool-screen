@@ -118,6 +118,7 @@ interface GameContextType extends GameState {
   // Sync actions
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
   syncError: string | null;
+  syncDidUpload: boolean;
   manualSync: () => Promise<void>;
 
   // Conflict resolution
@@ -222,6 +223,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       // Sync state
       const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
       const [syncError, setSyncError] = useState<string | null>(null);
+      const [syncDidUpload, setSyncDidUpload] = useState(false);
 
       // Conflict resolution state
       const [conflictState, setConflictState] = useState<{
@@ -312,17 +314,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
       }, [user?.uid]);
 
-     const manualSync = useCallback(async (): Promise<void> => {
-       if (!syncManagerRef.current) {
-         setSyncError('Sync manager not initialized');
-         return;
-       }
-       // Use stateRef to get latest state
-       await syncManagerRef.current.manualSync(
-         () => stateRef.current,
-         setSyncStatus,
-         setSyncError
-       );
+      const manualSync = useCallback(async (): Promise<void> => {
+        if (!syncManagerRef.current) {
+          setSyncError('Sync manager not initialized');
+          return;
+        }
+
+        // Reset flag before sync attempt
+        setSyncDidUpload(false);
+
+        // Use stateRef to get latest state
+        await syncManagerRef.current.manualSync(
+          () => stateRef.current,
+          setSyncStatus,
+          setSyncError
+        );
+
+        // After sync completes, check if data was actually uploaded
+        setSyncDidUpload(syncManagerRef.current.didUploadLastSync());
       }, []);
 
      /**
@@ -700,15 +709,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
        });
      },
 
-     // Sync actions
-     syncStatus,
-     syncError,
-     manualSync,
+      // Sync actions
+      syncStatus,
+      syncError,
+      syncDidUpload,
+      manualSync,
 
-     // Conflict resolution
-     conflictState,
-     handleConflictResolution,
-   };
+      // Conflict resolution
+      conflictState,
+      handleConflictResolution,
+    };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

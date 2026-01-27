@@ -33,25 +33,25 @@ import {
 import LogoutIcon from '@mui/icons-material/Logout';
 
 function AppContent() {
-   const { darkMode, toggleDarkMode, syncStatus, syncError, manualSync, conflictState, handleConflictResolution } = useGame();
+   const { darkMode, toggleDarkMode, syncStatus, syncError, syncDidUpload, manualSync, conflictState, handleConflictResolution } = useGame();
    const { user, logout } = useAuth();
    const [activeTab, setActiveTab] = useState(0);
    const [toastMessage, setToastMessage] = useState<string | null>(null);
    const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info'>('success');
    const [showToast, setShowToast] = useState(false);
 
-   // Show toast notifications for sync status
-   useEffect(() => {
-     if (syncStatus === 'synced') {
-       setToastMessage('✓ Data synced successfully');
-       setToastSeverity('success');
-       setShowToast(true);
-     } else if (syncStatus === 'error' && syncError) {
-       setToastMessage(`✕ Sync failed: ${syncError}`);
-       setToastSeverity('error');
-       setShowToast(true);
-     }
-   }, [syncStatus, syncError]);
+    // Show toast notifications for sync status
+    useEffect(() => {
+      if (syncStatus === 'synced' && syncDidUpload) {
+        setToastMessage('✓ Data synced successfully');
+        setToastSeverity('success');
+        setShowToast(true);
+      } else if (syncStatus === 'error' && syncError) {
+        setToastMessage(`✕ Sync failed: ${syncError}`);
+        setToastSeverity('error');
+        setShowToast(true);
+      }
+    }, [syncStatus, syncError, syncDidUpload]);
 
   const theme = createTheme({
     palette: {

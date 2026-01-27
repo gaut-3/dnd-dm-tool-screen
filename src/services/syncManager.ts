@@ -9,10 +9,11 @@ interface SyncData extends GameState {
 type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 export class SyncManager {
-  private syncInterval: ReturnType<typeof setInterval> | null = null;
-  private lastSyncHash: string = '';
-  private isSyncing: boolean = false;
-  private userId: string;
+   private syncInterval: ReturnType<typeof setInterval> | null = null;
+   private lastSyncHash: string = '';
+   private isSyncing: boolean = false;
+   private userId: string;
+   private lastSyncActuallyUploaded: boolean = false;
 
   constructor(userId: string) {
     this.userId = userId;
@@ -73,11 +74,12 @@ export class SyncManager {
       const gameState = getGameState();
       const currentHash = this.hashGameState(gameState);
 
-      // Only sync if data changed
-      if (currentHash === this.lastSyncHash) {
-        onStatusChange('idle');
-        return;
-      }
+       // Only sync if data changed
+       if (currentHash === this.lastSyncHash) {
+         this.lastSyncActuallyUploaded = false;
+         onStatusChange('idle');
+         return;
+       }
 
       const syncData: SyncData = {
         ...gameState,
@@ -87,6 +89,7 @@ export class SyncManager {
        await setDoc(doc(db, 'users', this.userId), syncData, { merge: false });
 
        this.lastSyncHash = currentHash;
+       this.lastSyncActuallyUploaded = true;
        // Update sync timestamp for conflict detection
        localStorage.setItem(`lastSync_${this.userId}`, new Date().toISOString());
        onStatusChange('synced');
@@ -189,6 +192,13 @@ export class SyncManager {
     */
    updateLastSyncTime(): void {
      localStorage.setItem(`lastSync_${this.userId}`, new Date().toISOString());
+   }
+
+   /**
+    * Check if the last sync actually uploaded data (or was a no-op)
+    */
+   didUploadLastSync(): boolean {
+     return this.lastSyncActuallyUploaded;
    }
 
   /**
