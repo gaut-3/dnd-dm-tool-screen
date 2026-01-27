@@ -236,11 +236,34 @@ function AppContent() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
-          <Typography variant="h3" component="h1" sx={{ textAlign: 'center', flex: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: { xs: 'stretch', sm: 'center' },
+            mb: 4,
+            gap: 2,
+          }}
+        >
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{ textAlign: { xs: 'center', sm: 'left' }, flex: { sm: 1 } }}
+          >
             🛡️ DM Screen & 🐉 Encounter Tracker
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap',
+              justifyContent: { xs: 'center', sm: 'flex-end' },
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
             <FormControlLabel
               control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
               label="🌙 Dark Mode"
