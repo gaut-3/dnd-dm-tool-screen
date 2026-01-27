@@ -10,7 +10,7 @@ import BastionTab from './components/tabs/BastionTab';
 import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
 import DataTab from './components/tabs/DataTab';
 import LoginPage from './pages/LoginPage';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import {
   Container,
   Box,
@@ -267,8 +267,30 @@ function AppContent() {
 }
 
 function AppWithAuth() {
-  const { user, loading } = useAuth();
+   const { user, loading } = useAuth();
+ 
+   if (loading) {
+     return (
+       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+         <CircularProgress />
+       </Box>
+     );
+   }
+ 
+   if (!user) {
+     return <LoginPage />;
+   }
+ 
+   return <AppContent />;
+}
 
+/**
+ * Wrapper that ensures GameProvider only mounts after auth is initialized
+ */
+function GameProviderWithAuthGuard({ children }: { children: ReactNode }) {
+  const { loading } = useAuth();
+  
+  // Don't render GameProvider until auth is ready to avoid useAuth() errors
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -276,20 +298,16 @@ function AppWithAuth() {
       </Box>
     );
   }
-
-  if (!user) {
-    return <LoginPage />;
-  }
-
-  return <AppContent />;
+  
+  return <GameProvider>{children}</GameProvider>;
 }
 
 function App() {
   return (
     <AuthProvider>
-      <GameProvider>
+      <GameProviderWithAuthGuard>
         <AppWithAuth />
-      </GameProvider>
+      </GameProviderWithAuthGuard>
     </AuthProvider>
   );
 }
