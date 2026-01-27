@@ -58,6 +58,8 @@ export interface GameState {
   currentDay: number;
   sortBy: 'initiative' | 'name';
   darkMode: boolean;
+  currentRound: number;
+  currentTurnIndex: number;
 }
 
 interface GameContextType extends GameState {
@@ -71,10 +73,15 @@ interface GameContextType extends GameState {
   addAbility: (index: number, ability: Ability) => void;
   removeAbility: (charIndex: number, abilityIndex: number) => void;
   adjustAbility: (charIndex: number, abilityIndex: number, delta: number) => void;
-  updateCondition: (index: number, condition: string) => void;
-  toggleSort: () => void;
+   updateCondition: (index: number, condition: string) => void;
+   toggleSort: () => void;
+   startCombat: () => void;
+   nextTurn: () => void;
+   previousTurn: () => void;
+   endRound: () => void;
+   resetCombat: () => void;
 
-  // Player actions
+   // Player actions
   addPlayer: (player: Player) => void;
   removePlayer: (index: number) => void;
   updatePlayer: (index: number, player: Player) => void;
@@ -125,6 +132,8 @@ const STORAGE_KEYS = {
   currentDay: 'currentDay',
   sortBy: 'sortBy',
   darkMode: 'darkMode',
+  currentRound: 'currentRound',
+  currentTurnIndex: 'currentTurnIndex',
 };
 
 const INITIAL_STATE: GameState = {
@@ -136,24 +145,28 @@ const INITIAL_STATE: GameState = {
   currentDay: 0,
   sortBy: 'initiative',
   darkMode: false,
+  currentRound: 0,
+  currentTurnIndex: -1,
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
    const { user } = useAuth();
-   const [state, setState] = useState<GameState>(() => {
-     try {
-       return {
-         encounter: JSON.parse(localStorage.getItem(STORAGE_KEYS.encounter) || '[]'),
-         players: JSON.parse(localStorage.getItem(STORAGE_KEYS.players) || '[]'),
-         deathSaves: JSON.parse(localStorage.getItem(STORAGE_KEYS.deathSaves) || '[]'),
-         links: JSON.parse(localStorage.getItem(STORAGE_KEYS.links) || '[]'),
-         bastions: JSON.parse(localStorage.getItem(STORAGE_KEYS.bastions) || '[]'),
-         currentDay: parseInt(localStorage.getItem(STORAGE_KEYS.currentDay) || '0'),
-         sortBy: (localStorage.getItem(STORAGE_KEYS.sortBy) || 'initiative') as 'initiative' | 'name',
-         darkMode: localStorage.getItem(STORAGE_KEYS.darkMode) === 'true',
-       };
-     } catch {
-       return INITIAL_STATE;
+    const [state, setState] = useState<GameState>(() => {
+      try {
+        return {
+          encounter: JSON.parse(localStorage.getItem(STORAGE_KEYS.encounter) || '[]'),
+          players: JSON.parse(localStorage.getItem(STORAGE_KEYS.players) || '[]'),
+          deathSaves: JSON.parse(localStorage.getItem(STORAGE_KEYS.deathSaves) || '[]'),
+          links: JSON.parse(localStorage.getItem(STORAGE_KEYS.links) || '[]'),
+          bastions: JSON.parse(localStorage.getItem(STORAGE_KEYS.bastions) || '[]'),
+          currentDay: parseInt(localStorage.getItem(STORAGE_KEYS.currentDay) || '0'),
+          sortBy: (localStorage.getItem(STORAGE_KEYS.sortBy) || 'initiative') as 'initiative' | 'name',
+          darkMode: localStorage.getItem(STORAGE_KEYS.darkMode) === 'true',
+          currentRound: parseInt(localStorage.getItem(STORAGE_KEYS.currentRound) || '0'),
+          currentTurnIndex: parseInt(localStorage.getItem(STORAGE_KEYS.currentTurnIndex) || '-1'),
+        };
+      } catch {
+        return INITIAL_STATE;
      }
    });
 
@@ -180,19 +193,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.currentDay, String(state.currentDay));
-  }, [state.currentDay]);
+   }, [state.currentDay]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.sortBy, state.sortBy);
-  }, [state.sortBy]);
+   useEffect(() => {
+     localStorage.setItem(STORAGE_KEYS.sortBy, state.sortBy);
+   }, [state.sortBy]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.darkMode, state.darkMode ? 'true' : 'false');
-  }, [state.darkMode]);
+   useEffect(() => {
+     localStorage.setItem(STORAGE_KEYS.darkMode, state.darkMode ? 'true' : 'false');
+   }, [state.darkMode]);
 
-    // Sync state
-    const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
-    const [syncError, setSyncError] = useState<string | null>(null);
+   useEffect(() => {
+     localStorage.setItem(STORAGE_KEYS.currentRound, String(state.currentRound));
+   }, [state.currentRound]);
+
+   useEffect(() => {
+     localStorage.setItem(STORAGE_KEYS.currentTurnIndex, String(state.currentTurnIndex));
+   }, [state.currentTurnIndex]);
+
+     // Sync state
+     const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+     const [syncError, setSyncError] = useState<string | null>(null);
 
     // Use ref to maintain SyncManager instance across renders
     const syncManagerRef = useRef<SyncManager | null>(null);
@@ -242,10 +263,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setSyncStatus,
         setSyncError
       );
-    }, []);
+     }, []);
 
-  const value: GameContextType = {
-    ...state,
+     /**
+      * Get the original index of the first creature when sorted by current sortBy mode
+      */
+     const getFirstCreatureInSortOrder = (encounter: Character[], sortBy: 'initiative' | 'name'): number => {
+       if (encounter.length === 0) return 0;
+
+       const sorted = encounter
+         .map((char, i) => ({ ...char, originalIndex: i }))
+         .sort((a, b) =>
+           sortBy === 'initiative'
+             ? (b.initiative || 0) - (a.initiative || 0)
+             : (a.name || '').localeCompare(b.name || '')
+         );
+
+       return sorted[0].originalIndex;
+     };
+
+   const value: GameContextType = {
+     ...state,
 
     // Encounter actions
     addCharacter: (char) => {
@@ -329,14 +367,57 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return { ...prev, encounter: updated };
       });
     },
-    toggleSort: () => {
-      setState((prev) => ({
-        ...prev,
-        sortBy: prev.sortBy === 'initiative' ? 'name' : 'initiative',
-      }));
-    },
+     toggleSort: () => {
+       setState((prev) => ({
+         ...prev,
+         sortBy: prev.sortBy === 'initiative' ? 'name' : 'initiative',
+       }));
+     },
+      startCombat: () => {
+        setState((prev) => ({
+          ...prev,
+          currentRound: 1,
+          currentTurnIndex: prev.encounter.length > 0 ? getFirstCreatureInSortOrder(prev.encounter, prev.sortBy) : -1,
+        }));
+      },
+     nextTurn: () => {
+       setState((prev) => {
+         if (prev.encounter.length === 0 || prev.currentRound === 0) return prev;
+         const nextIndex = (prev.currentTurnIndex + 1) % prev.encounter.length;
+         const nextRound = nextIndex === 0 ? prev.currentRound + 1 : prev.currentRound;
+         return {
+           ...prev,
+           currentTurnIndex: nextIndex,
+           currentRound: nextRound,
+         };
+       });
+     },
+     previousTurn: () => {
+       setState((prev) => {
+         if (prev.encounter.length === 0 || prev.currentRound === 0) return prev;
+         const prevIndex = (prev.currentTurnIndex - 1 + prev.encounter.length) % prev.encounter.length;
+         return { ...prev, currentTurnIndex: prevIndex };
+       });
+     },
+      endRound: () => {
+        setState((prev) => {
+          if (prev.encounter.length === 0) return prev;
+          return {
+            ...prev,
+            currentRound: prev.currentRound + 1,
+            currentTurnIndex: getFirstCreatureInSortOrder(prev.encounter, prev.sortBy),
+          };
+        });
+      },
+     resetCombat: () => {
+       setState((prev) => ({
+         ...prev,
+         currentRound: 0,
+         currentTurnIndex: -1,
+       }));
+     },
 
-    // Player actions
+     // Player actions
     addPlayer: (player) => {
       setState((prev) => ({ ...prev, players: [...prev.players, player] }));
     },
@@ -507,18 +588,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     },
-     importAll: (data) => {
-      setState({
-        encounter: data.encounter || [],
-        players: data.players || [],
-        deathSaves: data.deathSaves || [],
-        links: data.links || [],
-        bastions: data.bastions || [],
-        currentDay: data.currentDay || 0,
-        sortBy: data.sortBy || 'initiative',
-        darkMode: data.darkMode || false,
-      });
-    },
+      importAll: (data) => {
+       setState({
+         encounter: data.encounter || [],
+         players: data.players || [],
+         deathSaves: data.deathSaves || [],
+         links: data.links || [],
+         bastions: data.bastions || [],
+         currentDay: data.currentDay || 0,
+         sortBy: data.sortBy || 'initiative',
+         darkMode: data.darkMode || false,
+         currentRound: data.currentRound || 0,
+         currentTurnIndex: data.currentTurnIndex || -1,
+       });
+     },
 
     // Sync actions
     syncStatus,
@@ -529,12 +612,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
+/**
+ * Convert a Player to a Character snapshot
+ * Creates an independent character copy with only name and ac from player
+ */
+export function playerToCharacter(player: Player): Character {
+  return {
+    name: player.name,
+    hp: 0, // User must provide HP
+    maxHp: 0, // User must provide HP
+    initiative: 0,
+    initiativeMod: 0, // Players roll initiative themselves
+    charStatus: '',
+    ac: player.ac,
+    abilities: [],
+  };
+}
+
 export function useGame() {
-  const context = useContext(GameContext);
-  if (context === undefined) {
-    throw new Error('useGame must be used within GameProvider');
-  }
-  return context;
+   const context = useContext(GameContext);
+   if (context === undefined) {
+     throw new Error('useGame must be used within GameProvider');
+   }
+   return context;
 }
 
 function getRandomBastionEvent(): string {

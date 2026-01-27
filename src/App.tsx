@@ -7,6 +7,7 @@ import ActionsTab from './components/tabs/ActionsTab';
 import FeatsTab from './components/tabs/FeatsTab';
 import LinksTab from './components/tabs/LinksTab';
 import BastionTab from './components/tabs/BastionTab';
+import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
 import DataTab from './components/tabs/DataTab';
 import LoginPage from './pages/LoginPage';
 import { useState, useEffect } from 'react';
@@ -174,16 +175,17 @@ function AppContent() {
      }
    };
 
-  const tabs = [
-    { label: 'Encounter', component: <EncounterTab /> },
-    { label: 'Players', component: <PlayersTab /> },
-    { label: 'Death Saves', component: <DeathSavesTab /> },
-    { label: 'Actions', component: <ActionsTab /> },
-    { label: 'Feats', component: <FeatsTab /> },
-    { label: 'Links', component: <LinksTab /> },
-    { label: 'Bastions', component: <BastionTab /> },
-    { label: 'Data', component: <DataTab /> },
-  ];
+   const tabs = [
+     { label: 'Encounter', component: <EncounterTab /> },
+     { label: 'Players', component: <PlayersTab /> },
+     { label: 'Death Saves', component: <DeathSavesTab /> },
+     { label: 'Actions', component: <ActionsTab /> },
+     { label: 'Feats', component: <FeatsTab /> },
+     { label: 'NPCs', component: <NPCNameGeneratorTab /> },
+     { label: 'Links', component: <LinksTab /> },
+     { label: 'Bastions', component: <BastionTab /> },
+     { label: 'Data', component: <DataTab /> },
+   ];
 
   return (
     <ThemeProvider theme={theme}>
