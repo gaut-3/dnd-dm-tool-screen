@@ -286,11 +286,11 @@ function AppWithAuth() {
 
 function App() {
   return (
-    <AuthProvider>
-      <GameProvider>
+    <GameProvider>
+      <AuthProvider>
         <AppWithAuth />
-      </GameProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </GameProvider>
   );
 }
 
