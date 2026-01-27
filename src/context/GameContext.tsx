@@ -262,22 +262,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
                   });
                   // Don't start sync yet - wait for user decision
                 } else if (resolution.remoteData) {
-                  // No conflict, just load remote data (Firestore is source of truth)
-                  setState({
-                    encounter: resolution.remoteData.encounter || [],
-                    players: resolution.remoteData.players || [],
-                    deathSaves: resolution.remoteData.deathSaves || [],
-                    links: resolution.remoteData.links || [],
-                    bastions: resolution.remoteData.bastions || [],
-                    currentDay: resolution.remoteData.currentDay || 0,
-                    sortBy: resolution.remoteData.sortBy || 'initiative',
-                    darkMode: resolution.remoteData.darkMode || false,
-                    currentRound: resolution.remoteData.currentRound || 0,
-                    currentTurnIndex: resolution.remoteData.currentTurnIndex || -1,
-                  });
-                  syncManagerRef.current!.updateLastSyncTime();
-                  // Now start auto-sync
-                  syncManagerRef.current!.startAutoSync(
+                   // No conflict, just load remote data (Firestore is source of truth)
+                   setState({
+                     encounter: resolution.remoteData.encounter || [],
+                     players: resolution.remoteData.players || [],
+                     deathSaves: resolution.remoteData.deathSaves || [],
+                     links: resolution.remoteData.links || [],
+                     bastions: resolution.remoteData.bastions || [],
+                     currentDay: resolution.remoteData.currentDay || 0,
+                     sortBy: resolution.remoteData.sortBy || 'initiative',
+                     darkMode: resolution.remoteData.darkMode || false,
+                     currentRound: resolution.remoteData.currentRound || 0,
+                     currentTurnIndex: resolution.remoteData.currentTurnIndex || -1,
+                   });
+                   // Now start auto-sync
+                   syncManagerRef.current!.startAutoSync(
                     () => stateRef.current,
                     setSyncStatus,
                     setSyncError
@@ -351,10 +350,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
            darkMode: conflictState.remoteData.darkMode || false,
            currentRound: conflictState.remoteData.currentRound || 0,
            currentTurnIndex: conflictState.remoteData.currentTurnIndex || -1,
-         });
-         setSyncError('Using cloud data');
-         syncManagerRef.current?.updateLastSyncTime();
-       } else {
+          });
+          setSyncError('Using cloud data');
+        } else {
          // Keep local data - will sync to cloud on next sync
          setSyncError('Keeping local data. It will sync to cloud.');
        }

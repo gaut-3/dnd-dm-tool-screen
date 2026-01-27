@@ -88,11 +88,9 @@ export class SyncManager {
 
        await setDoc(doc(db, 'users', this.userId), syncData, { merge: false });
 
-       this.lastSyncHash = currentHash;
-       this.lastSyncActuallyUploaded = true;
-       // Update sync timestamp for conflict detection
-       localStorage.setItem(`lastSync_${this.userId}`, new Date().toISOString());
-       onStatusChange('synced');
+        this.lastSyncHash = currentHash;
+        this.lastSyncActuallyUploaded = true;
+        onStatusChange('synced');
 
       // Reset to idle after 2 seconds
       setTimeout(() => onStatusChange('idle'), 2000);
@@ -127,79 +125,73 @@ export class SyncManager {
      }
    }
 
-   /**
-    * Load game state from Firestore with conflict detection
-    * Returns remote data and conflict info for user decision
-    */
-   async loadWithConflictResolution(
-     localGameState: GameState
-   ): Promise<{
-     remoteData: GameState | null;
-     hasConflict: boolean;
-     localIsNewer: boolean;
-   }> {
-     try {
-       const docSnap = await getDoc(doc(db, 'users', this.userId));
+    /**
+     * Load game state from Firestore with conflict detection
+     * Returns remote data and conflict info for user decision
+     * Uses hash-based comparison of actual data content (not timestamps)
+     */
+    async loadWithConflictResolution(
+      localGameState: GameState
+    ): Promise<{
+      remoteData: GameState | null;
+      hasConflict: boolean;
+      localIsNewer: boolean;
+    }> {
+      try {
+        const docSnap = await getDoc(doc(db, 'users', this.userId));
 
-       if (!docSnap.exists()) {
-         return { remoteData: null, hasConflict: false, localIsNewer: false };
-       }
+        if (!docSnap.exists()) {
+          return { remoteData: null, hasConflict: false, localIsNewer: false };
+        }
 
-       const remoteData = docSnap.data() as SyncData;
-       const remoteLastSync = remoteData.lastSync?.toDate() || new Date(0);
+        const remoteData = docSnap.data() as SyncData;
 
-       // Get local last-sync timestamp (stored when we last synced successfully)
-       const localLastSyncStr = localStorage.getItem(`lastSync_${this.userId}`);
-       const localLastSync = localLastSyncStr ? new Date(localLastSyncStr) : new Date(0);
+        // Check if both have meaningful data by comparing against initial empty state
+        const emptyState = {
+          encounter: [],
+          players: [],
+          deathSaves: [],
+          links: [],
+          bastions: [],
+          currentDay: 0,
+          sortBy: 'initiative',
+          darkMode: false,
+          currentRound: 0,
+          currentTurnIndex: -1,
+        };
 
-       // Check if both have meaningful data by comparing against initial empty state
-       const emptyState = {
-         encounter: [],
-         players: [],
-         deathSaves: [],
-         links: [],
-         bastions: [],
-         currentDay: 0,
-         sortBy: 'initiative',
-         darkMode: false,
-         currentRound: 0,
-         currentTurnIndex: -1,
-       };
+        const localHasData = JSON.stringify(localGameState) !== JSON.stringify(emptyState);
+        const remoteHasData = remoteData && (remoteData.encounter?.length > 0 || remoteData.players?.length > 0 || remoteData.deathSaves?.length > 0);
 
-       const localHasData = JSON.stringify(localGameState) !== JSON.stringify(emptyState);
-       const remoteHasData = remoteData && (remoteData.encounter?.length > 0 || remoteData.players?.length > 0 || remoteData.deathSaves?.length > 0);
+        // Compare actual data content using hashes (NOT timestamps)
+        const localDataHash = this.hashGameState(localGameState);
+        const remoteDataHash = this.hashGameState(remoteData);
+        const dataIsDifferent = localDataHash !== remoteDataHash;
 
-       // Conflict = both have data AND sync times differ
-       const hasConflict = localHasData && remoteHasData && remoteLastSync !== localLastSync;
-       const localIsNewer = localLastSync > remoteLastSync;
+        // Conflict only if both have data AND content differs
+        const hasConflict = localHasData && remoteHasData && dataIsDifferent;
+        const localIsNewer = false; // Always show "Cloud data is newer" in dialog
 
-       // Cache the remote hash for next sync
-       this.lastSyncHash = this.hashGameState(remoteData);
+        // Cache the remote hash for next sync
+        this.lastSyncHash = this.hashGameState(remoteData);
 
-       return {
-         remoteData: remoteData || null,
-         hasConflict,
-         localIsNewer,
-       };
-     } catch (error) {
-       console.error('Conflict resolution error:', error);
-       throw error;
-     }
-   }
+        return {
+          remoteData: remoteData || null,
+          hasConflict,
+          localIsNewer,
+        };
+      } catch (error) {
+        console.error('Conflict resolution error:', error);
+        throw error;
+      }
+    }
 
-   /**
-    * Update lastSync timestamp in localStorage after successful sync
-    */
-   updateLastSyncTime(): void {
-     localStorage.setItem(`lastSync_${this.userId}`, new Date().toISOString());
-   }
-
-   /**
-    * Check if the last sync actually uploaded data (or was a no-op)
-    */
-   didUploadLastSync(): boolean {
-     return this.lastSyncActuallyUploaded;
-   }
+    /**
+     * Check if the last sync actually uploaded data (or was a no-op)
+     */
+    didUploadLastSync(): boolean {
+      return this.lastSyncActuallyUploaded;
+    }
 
   /**
    * Create hash of game state for change detection
