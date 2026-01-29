@@ -1,16 +1,3 @@
-import { GameProvider, useGame } from './context/GameContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import EncounterTab from './components/tabs/EncounterTab';
-import PlayersTab from './components/tabs/PlayersTab';
-import DeathSavesTab from './components/tabs/DeathSavesTab';
-import ActionsTab from './components/tabs/ActionsTab';
-import FeatsTab from './components/tabs/FeatsTab';
-import LinksTab from './components/tabs/LinksTab';
-import BastionTab from './components/tabs/BastionTab';
-import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
-import DataTab from './components/tabs/DataTab';
-import ConflictResolutionDialog from './components/ConflictResolutionDialog';
-import LoginPage from './pages/LoginPage';
 import { useState, useEffect, ReactNode } from 'react';
 import {
   Container,
@@ -30,6 +17,20 @@ import {
   Alert,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { GameProvider, useGame } from './context/GameContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import EncounterTab from './components/tabs/EncounterTab';
+import PlayersTab from './components/tabs/PlayersTab';
+import DeathSavesTab from './components/tabs/DeathSavesTab';
+import ActionsTab from './components/tabs/ActionsTab';
+import FeatsTab from './components/tabs/FeatsTab';
+import LinksTab from './components/tabs/LinksTab';
+import BastionTab from './components/tabs/BastionTab';
+import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
+import DataTab from './components/tabs/DataTab';
+import ConflictResolutionDialog from './components/ConflictResolutionDialog';
+import LoginPage from './pages/LoginPage';
+import logoUrl from '../backgrounds/logo.png';
 import { createAppTheme } from './theme';
 
 function AppContent() {
@@ -114,19 +115,45 @@ function AppContent() {
             animation: 'slideInUp 0.5s ease-out',
           }}
         >
-          <Typography
-            variant="h3"
-            component="h1"
+          <Box
             sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 2, sm: 3 },
+              justifyContent: { xs: 'center', sm: 'flex-start' },
               textAlign: { xs: 'center', sm: 'left' },
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              width: { xs: '100%', sm: 'auto' },
+              flexWrap: 'wrap',
             }}
           >
-            🛡️ DM Screen & 🐉 Encounter Tracker
-          </Typography>
+            <Box
+              component="img"
+              src={logoUrl}
+              alt="DM Screen & Tools logo"
+              sx={{
+                width: { xs: 72, sm: 96 },
+                height: 'auto',
+                filter: 'drop-shadow(0 16px 28px rgba(0, 0, 0, 0.35))',
+              }}
+            />
+            <Box>
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                DM Screen & Tools
+              </Typography>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 0.5 }}>
+                Encounter tracking, party tools, and campaign utilities
+              </Typography>
+            </Box>
+          </Box>
           <Box
             sx={{
               display: 'flex',

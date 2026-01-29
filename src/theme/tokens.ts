@@ -10,55 +10,55 @@
 export const darkPalette = {
   // Primary colors
   primary: {
-    main: '#e8b440',      // Vibrant Gold
-    light: '#f0c85a',     // Lighter gold
-    dark: '#d4a038',      // Darker gold
-    darker: '#c09030',    // Very dark gold
+    main: '#d6a84f',      // Antique Gold
+    light: '#e6c56d',     // Brighter gold
+    dark: '#b88933',      // Warm bronze
+    darker: '#8f6926',    // Deep bronze
   },
   
   // Secondary colors
   secondary: {
-    main: '#8b5fbf',      // Deep Purple
-    light: '#a876d4',     // Lighter purple
-    dark: '#6f4fa6',      // Darker purple
-    darker: '#5a3d8f',    // Very dark purple
+    main: '#3f5e86',      // Steel Blue
+    light: '#5677a3',     // Misty blue
+    dark: '#2e4666',      // Deep slate
+    darker: '#22354f',    // Night slate
   },
   
   // Tertiary colors (magical highlights)
   tertiary: {
-    main: '#4da6ff',      // Bright Azure
-    light: '#6bb5ff',     // Lighter azure
-    dark: '#3d94e8',      // Darker azure
+    main: '#6aa7bf',      // Arctic blue
+    light: '#8fc0d4',     // Light icy blue
+    dark: '#4e8aa4',      // Deep teal
   },
   
   // Semantic colors
-  success: '#51cf66',     // Vibrant green
-  warning: '#ffa500',     // Bright orange
-  error: '#ff6b6b',       // Crimson red
-  info: '#4da6ff',        // Azure blue
+  success: '#4bb369',     // Verdant green
+  warning: '#d08a34',     // Burnished amber
+  error: '#d95c5c',       // Crimson red
+  info: '#5fa3d1',        // Cool blue
   
   // Background colors
   background: {
-    default: '#0a0e13',   // Darker black-navy
-    paper: '#0f1419',     // Deep navy
-    elevated: '#151d2b',  // Slightly lighter for depth
+    default: '#0b111a',   // Midnight navy
+    paper: '#111827',     // Deep indigo
+    elevated: '#1a2334',  // Storm blue
   },
   
   // Text colors
   text: {
-    primary: '#f0f4fa',   // Light, highly readable
-    secondary: '#b0b9c8', // Soft gray
-    disabled: '#5a6374',  // Dimmed
+    primary: '#f7f1e6',   // Warm ivory
+    secondary: '#c2b8a6', // Muted parchment
+    disabled: '#7e7464',  // Weathered stone
   },
   
   // Borders and dividers
   border: {
-    main: 'rgba(232, 180, 64, 0.15)',    // Subtle gold tint
-    secondary: 'rgba(139, 95, 191, 0.15)', // Purple tint
-    strong: 'rgba(232, 180, 64, 0.3)',   // Stronger gold
+    main: 'rgba(214, 168, 79, 0.18)',     // Subtle gold tint
+    secondary: 'rgba(63, 94, 134, 0.22)', // Slate tint
+    strong: 'rgba(214, 168, 79, 0.38)',   // Stronger gold
   },
   
-  divider: 'rgba(139, 95, 191, 0.15)',
+  divider: 'rgba(63, 94, 134, 0.22)',
 };
 
 // ============================================================================
@@ -68,54 +68,54 @@ export const darkPalette = {
 export const lightPalette = {
   // Primary colors
   primary: {
-    main: '#a86c1a',      // Rich Leather Brown
-    light: '#c9844a',     // Lighter brown
-    dark: '#8d5b14',      // Darker brown
-    darker: '#6d4610',    // Very dark brown
+    main: '#b07a2b',      // Aged brass
+    light: '#c9924c',     // Warm brass
+    dark: '#8f5f1f',      // Rustic bronze
+    darker: '#6f4718',    // Deep bronze
   },
   
   // Secondary colors
   secondary: {
-    main: '#6a4ba1',      // Jewel Purple
-    light: '#8b6bb8',     // Lighter purple
-    dark: '#5a3d8f',      // Darker purple
+    main: '#46648a',      // Slate blue
+    light: '#5f7aa1',     // Muted blue
+    dark: '#334d6f',      // Deep slate
   },
   
   // Tertiary colors
   tertiary: {
-    main: '#1e7ac2',      // Deep Blue
-    light: '#4a95d4',     // Lighter blue
-    dark: '#1a5fa6',      // Darker blue
+    main: '#2f86b3',      // Deep teal
+    light: '#4f9cc2',     // Lighter teal
+    dark: '#236b94',      // Darker teal
   },
   
   // Semantic colors
   success: '#2f7a3a',     // Forest green
-  warning: '#d97706',     // Deep orange
-  error: '#c41e3a',       // Deep crimson
-  info: '#1e7ac2',        // Deep blue
+  warning: '#c86c1a',     // Burnished orange
+  error: '#b83a4a',       // Deep crimson
+  info: '#2f86b3',        // Deep teal
   
   // Background colors
   background: {
-    default: '#faf7f2',   // Warm ivory
-    paper: '#fff9f3',     // Cream with warmth
-    elevated: '#f5f0e8',  // Slightly darker for depth
+    default: '#f7f1e5',   // Warm ivory
+    paper: '#fff7ec',     // Cream with warmth
+    elevated: '#efe5d6',  // Aged parchment
   },
   
   // Text colors
   text: {
-    primary: '#1f1a13',   // Dark brown
-    secondary: '#6b5d4f', // Medium brown
-    disabled: '#a69a8f',  // Dimmed
+    primary: '#2b2016',   // Dark brown
+    secondary: '#5f5247', // Medium brown
+    disabled: '#9a8c7c',  // Dimmed
   },
   
   // Borders and dividers
   border: {
-    main: 'rgba(168, 108, 26, 0.2)',    // Subtle brown tint
-    secondary: 'rgba(106, 75, 161, 0.2)', // Purple tint
-    strong: 'rgba(168, 108, 26, 0.35)',  // Stronger brown
+    main: 'rgba(176, 122, 43, 0.22)',    // Subtle brass tint
+    secondary: 'rgba(70, 100, 138, 0.2)', // Slate tint
+    strong: 'rgba(176, 122, 43, 0.35)',  // Stronger brass
   },
   
-  divider: 'rgba(106, 75, 161, 0.15)',
+  divider: 'rgba(70, 100, 138, 0.16)',
 };
 
 // ============================================================================

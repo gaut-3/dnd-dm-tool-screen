@@ -8,6 +8,10 @@ import { darkPalette, lightPalette, shadows, spacing, transitions, borderRadius 
 
 export const createComponentOverrides = (isDarkMode: boolean): Components<Theme> => {
   const palette = isDarkMode ? darkPalette : lightPalette;
+  const backgroundImage = new URL('../../backgrounds/background2.png', import.meta.url).href;
+  const backgroundOverlay = isDarkMode
+    ? 'linear-gradient(135deg, rgba(9, 12, 18, 0.88) 0%, rgba(14, 20, 32, 0.82) 45%, rgba(16, 24, 35, 0.9) 100%)'
+    : 'linear-gradient(135deg, rgba(250, 244, 233, 0.8) 0%, rgba(246, 237, 223, 0.78) 50%, rgba(238, 229, 214, 0.85) 100%)';
 
   return {
     MuiCssBaseline: {
@@ -23,7 +27,9 @@ export const createComponentOverrides = (isDarkMode: boolean): Components<Theme>
           backgroundAttachment: 'fixed',
           backgroundPosition: 'center',
           backgroundSize: 'cover',
-          backgroundImage: 'url(/background2.png)',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: palette.background.default,
+          backgroundImage: `${backgroundOverlay}, url(${backgroundImage})`,
         },
         '#root': {
           minHeight: '100vh',
@@ -34,7 +40,7 @@ export const createComponentOverrides = (isDarkMode: boolean): Components<Theme>
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: palette.background.paper,
+          backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.86)' : 'rgba(255, 247, 236, 0.9)',
           border: `1px solid ${palette.border.secondary}`,
           backdropFilter: 'blur(12px)',
           boxShadow: shadows.md,
@@ -51,7 +57,7 @@ export const createComponentOverrides = (isDarkMode: boolean): Components<Theme>
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: palette.background.paper,
+          backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.88)' : 'rgba(255, 247, 236, 0.92)',
           border: `1px solid ${palette.border.secondary}`,
           backdropFilter: 'blur(12px)',
         },
@@ -74,7 +80,7 @@ export const createComponentOverrides = (isDarkMode: boolean): Components<Theme>
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            backgroundColor: isDarkMode ? 'rgba(21, 30, 44, 0.9)' : 'rgba(255, 251, 246, 0.96)',
+            backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 247, 235, 0.96)',
             transition: transitions.fast,
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: palette.primary.main,
@@ -169,7 +175,7 @@ export const createComponentOverrides = (isDarkMode: boolean): Components<Theme>
     MuiSelect: {
       styleOverrides: {
         root: {
-          backgroundColor: isDarkMode ? 'rgba(21, 30, 44, 0.9)' : 'rgba(255, 251, 246, 0.96)',
+          backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 247, 235, 0.96)',
           transition: transitions.fast,
         },
       },
