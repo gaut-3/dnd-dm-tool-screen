@@ -1,3 +1,22 @@
+import { useState, useEffect, ReactNode } from 'react';
+import {
+  Container,
+  Box,
+  Tabs,
+  Tab,
+  Typography,
+  FormControlLabel,
+  Switch,
+  Paper,
+  CssBaseline,
+  ThemeProvider,
+  Button,
+  Chip,
+  CircularProgress,
+  Snackbar,
+  Alert,
+} from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { GameProvider, useGame } from './context/GameContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import EncounterTab from './components/tabs/EncounterTab';
@@ -11,335 +30,245 @@ import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
 import DataTab from './components/tabs/DataTab';
 import ConflictResolutionDialog from './components/ConflictResolutionDialog';
 import LoginPage from './pages/LoginPage';
-import { useState, useEffect, ReactNode } from 'react';
-import {
-  Container,
-  Box,
-  Tabs,
-  Tab,
-  Typography,
-  FormControlLabel,
-  Switch,
-  Paper,
-  CssBaseline,
-  ThemeProvider,
-  createTheme,
-  Button,
-  Chip,
-  CircularProgress,
-  Snackbar,
-  Alert,
-} from '@mui/material';
-import LogoutIcon from '@mui/icons-material/Logout';
+import logoUrl from '../backgrounds/logo.png';
+import { createAppTheme } from './theme';
 
 function AppContent() {
-   const { darkMode, toggleDarkMode, syncStatus, syncError, syncDidUpload, manualSync, conflictState, handleConflictResolution } = useGame();
-   const { user, logout } = useAuth();
-   const [activeTab, setActiveTab] = useState(0);
-   const [toastMessage, setToastMessage] = useState<string | null>(null);
-   const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info'>('success');
-   const [showToast, setShowToast] = useState(false);
-   const backgroundImageUrl = new URL('../backgrounds/background2.png', import.meta.url).toString();
+  const { darkMode, toggleDarkMode, syncStatus, syncError, syncDidUpload, manualSync, conflictState, handleConflictResolution } = useGame();
+  const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState(0);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info'>('success');
+  const [showToast, setShowToast] = useState(false);
 
-    // Show toast notifications for sync status
-    useEffect(() => {
-      if (syncStatus === 'synced' && syncDidUpload) {
-        setToastMessage('✓ Data synced successfully');
-        setToastSeverity('success');
-        setShowToast(true);
-      } else if (syncStatus === 'error' && syncError) {
-        setToastMessage(`✕ Sync failed: ${syncError}`);
-        setToastSeverity('error');
-        setShowToast(true);
-      }
-    }, [syncStatus, syncError, syncDidUpload]);
+  // Show toast notifications for sync status
+  useEffect(() => {
+    if (syncStatus === 'synced' && syncDidUpload) {
+      setToastMessage('✓ Data synced successfully');
+      setToastSeverity('success');
+      setShowToast(true);
+    } else if (syncStatus === 'error' && syncError) {
+      setToastMessage(`✕ Sync failed: ${syncError}`);
+      setToastSeverity('error');
+      setShowToast(true);
+    }
+  }, [syncStatus, syncError, syncDidUpload]);
 
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: {
-        main: darkMode ? '#f4c77a' : '#8d5b2c',
-      },
-      secondary: {
-        main: darkMode ? '#79b7d9' : '#3d6f8f',
-      },
-      background: {
-        default: darkMode ? '#0b0f14' : '#f6efe6',
-        paper: darkMode ? '#111822' : '#fbf6ef',
-      },
-      divider: darkMode ? 'rgba(152, 180, 214, 0.18)' : 'rgba(93, 72, 50, 0.2)',
-    },
-    typography: {
-      fontFamily: '"Cinzel", "Cormorant Garamond", "Garamond", "Georgia", serif',
-      h3: {
-        fontWeight: 700,
-        letterSpacing: '0.06em',
-      },
-      h5: {
-        fontWeight: 600,
-      },
-    },
-    components: {
-      MuiCssBaseline: {
-        styleOverrides: {
-          body: {
-            backgroundColor: darkMode ? '#0b0f14' : '#f6efe6',
-            backgroundImage: `linear-gradient(135deg, rgba(9, 12, 18, 0.82) 0%, rgba(13, 18, 26, 0.68) 40%, rgba(20, 26, 36, 0.6) 100%), url(${backgroundImageUrl})`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            backgroundAttachment: 'fixed',
-            color: darkMode ? '#e7eef8' : '#1f1a13',
-            minHeight: '100%',
-          },
-          '#root': {
-            minHeight: '100%',
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            backgroundColor: darkMode ? 'rgba(18, 26, 40, 0.82)' : 'rgba(253, 249, 242, 0.88)',
-            border: darkMode ? '1px solid rgba(148, 183, 222, 0.25)' : '1px solid rgba(155, 115, 71, 0.3)',
-            boxShadow: darkMode ? '0 10px 30px rgba(3, 6, 12, 0.7)' : '0 12px 28px rgba(39, 29, 17, 0.18)',
-            backdropFilter: 'blur(6px)',
-            '&:hover': {
-              boxShadow: darkMode ? '0 14px 36px rgba(3, 6, 12, 0.8)' : '0 16px 34px rgba(39, 29, 17, 0.24)',
-              borderColor: darkMode ? 'rgba(196, 222, 244, 0.35)' : 'rgba(155, 115, 71, 0.45)',
-            },
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundColor: darkMode ? 'rgba(13, 19, 29, 0.84)' : 'rgba(253, 249, 242, 0.9)',
-            backgroundImage: darkMode
-              ? 'linear-gradient(145deg, rgba(20, 28, 41, 0.92) 0%, rgba(12, 18, 28, 0.95) 100%)'
-              : 'linear-gradient(145deg, rgba(255, 252, 248, 0.96) 0%, rgba(245, 236, 224, 0.92) 100%)',
-            border: darkMode ? '1px solid rgba(152, 180, 214, 0.22)' : '1px solid rgba(155, 115, 71, 0.24)',
-            backdropFilter: 'blur(8px)',
-          },
-        },
-      },
-      MuiTextField: {
-        styleOverrides: {
-          root: {
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: darkMode ? 'rgba(21, 30, 44, 0.9)' : 'rgba(255, 251, 246, 0.96)',
-              borderColor: darkMode ? 'rgba(148, 183, 222, 0.3)' : 'rgba(155, 115, 71, 0.3)',
-              '&:hover fieldset': {
-                borderColor: darkMode ? '#f4c77a' : '#8d5b2c',
-              },
-            },
-            '& .MuiOutlinedInput-input': {
-              color: darkMode ? '#e7eef8' : '#2b2117',
-            },
-          },
-        },
-      },
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            textTransform: 'none',
-            fontWeight: 600,
-          },
-        },
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            backgroundColor: darkMode ? 'rgba(26, 36, 54, 0.92)' : 'rgba(253, 247, 238, 0.96)',
-            color: darkMode ? '#e7eef8' : '#2b2117',
-          },
-        },
-      },
-      MuiSelect: {
-        styleOverrides: {
-          root: {
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: darkMode ? 'rgba(21, 30, 44, 0.9)' : 'rgba(255, 251, 246, 0.96)',
-              borderColor: darkMode ? 'rgba(148, 183, 222, 0.3)' : 'rgba(155, 115, 71, 0.3)',
-            },
-          },
-        },
-      },
-      MuiTabs: {
-        styleOverrides: {
-          root: {
-            borderBottom: darkMode ? '1px solid rgba(148, 183, 222, 0.2)' : '1px solid rgba(155, 115, 71, 0.2)',
-          },
-          indicator: {
-            backgroundColor: darkMode ? '#f4c77a' : '#8d5b2c',
-          },
-        },
-      },
-      MuiTab: {
-        styleOverrides: {
-          root: {
-            textTransform: 'none',
-            fontWeight: 600,
-            color: darkMode ? 'rgba(230, 238, 248, 0.82)' : 'rgba(43, 33, 23, 0.78)',
-            '&.Mui-selected': {
-              color: darkMode ? '#f7d9a4' : '#8d5b2c',
-            },
-          },
-        },
-      },
-    },
-  });
+  // Use the modular theme system
+  const theme = createAppTheme(darkMode);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-   const getSyncStatusColor = () => {
-     switch (syncStatus) {
-       case 'synced':
-         return 'success';
-       case 'syncing':
-         return 'info';
-       case 'error':
-         return 'error';
-       default:
-         return 'default';
-     }
-   };
+  const getSyncStatusColor = () => {
+    switch (syncStatus) {
+      case 'synced':
+        return 'success';
+      case 'syncing':
+        return 'info';
+      case 'error':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
 
-   const getSyncStatusLabel = () => {
-     switch (syncStatus) {
-       case 'synced':
-         return '✓ Synced';
-       case 'syncing':
-         return '⟳ Syncing...';
-       case 'error':
-         return '✕ Error';
-       default:
-         return 'Offline';
-     }
-   };
+  const getSyncStatusLabel = () => {
+    switch (syncStatus) {
+      case 'synced':
+        return '✓ Synced';
+      case 'syncing':
+        return '⟳ Syncing...';
+      case 'error':
+        return '✕ Error';
+      default:
+        return 'Offline';
+    }
+  };
 
-   const tabs = [
-     { label: 'Encounter', component: <EncounterTab /> },
-     { label: 'Players', component: <PlayersTab /> },
-     { label: 'Death Saves', component: <DeathSavesTab /> },
-     { label: 'Actions', component: <ActionsTab /> },
-     { label: 'Feats', component: <FeatsTab /> },
-     { label: 'NPCs', component: <NPCNameGeneratorTab /> },
-     { label: 'Links', component: <LinksTab /> },
-     { label: 'Bastions', component: <BastionTab /> },
-     { label: 'Data', component: <DataTab /> },
-   ];
+  const tabs = [
+    { label: 'Encounter', component: <EncounterTab /> },
+    { label: 'Players', component: <PlayersTab /> },
+    { label: 'Death Saves', component: <DeathSavesTab /> },
+    { label: 'Actions', component: <ActionsTab /> },
+    { label: 'Feats', component: <FeatsTab /> },
+    { label: 'NPCs', component: <NPCNameGeneratorTab /> },
+    { label: 'Links', component: <LinksTab /> },
+    { label: 'Bastions', component: <BastionTab /> },
+    { label: 'Data', component: <DataTab /> },
+  ];
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 } }}>
+        {/* Header Section with improved spacing */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            flexWrap: 'wrap',
             justifyContent: 'space-between',
             alignItems: { xs: 'stretch', sm: 'center' },
-            mb: 4,
-            gap: 2,
+            mb: { xs: 3, sm: 4 },
+            gap: { xs: 2, sm: 3 },
+            animation: 'slideInUp 0.5s ease-out',
           }}
         >
-          <Typography
-            variant="h3"
-            component="h1"
-            sx={{ textAlign: { xs: 'center', sm: 'left' }, flex: { sm: 1 } }}
-          >
-            🛡️ DM Screen & 🐉 Encounter Tracker
-          </Typography>
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
+              gap: { xs: 2, sm: 3 },
+              justifyContent: { xs: 'center', sm: 'flex-start' },
+              textAlign: { xs: 'center', sm: 'left' },
+              width: { xs: '100%', sm: 'auto' },
               flexWrap: 'wrap',
+            }}
+          >
+            <Box
+              component="img"
+              src={logoUrl}
+              alt="DM Screen & Tools logo"
+              sx={{
+                width: { xs: 72, sm: 96 },
+                height: 'auto',
+                filter: 'drop-shadow(0 16px 28px rgba(0, 0, 0, 0.35))',
+              }}
+            />
+            <Box>
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                DM Screen & Tools
+              </Typography>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 0.5 }}>
+                Encounter tracking, party tools, and campaign utilities
+              </Typography>
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 1, sm: 2 },
               justifyContent: { xs: 'center', sm: 'flex-end' },
               width: { xs: '100%', sm: 'auto' },
+              flexWrap: 'wrap',
             }}
           >
             <FormControlLabel
               control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
-              label="🌙 Dark Mode"
+              label="🌙 Dark"
+              sx={{ whiteSpace: 'nowrap' }}
             />
             <Button
               size="small"
               startIcon={<LogoutIcon />}
               onClick={() => logout()}
               variant="outlined"
+              sx={{ whiteSpace: 'nowrap' }}
             >
               Logout
             </Button>
           </Box>
         </Box>
 
+        {/* User Info and Sync Status */}
         {user && (
-          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              mb: 3,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              animation: 'slideInUp 0.6s ease-out',
+              '@media (max-width: 600px)': {
+                flexDirection: 'column',
+              },
+            }}
+          >
             <Typography variant="body2" color="text.secondary">
               Signed in as: <strong>{user.email}</strong>
             </Typography>
-             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-               <Chip
-                 label={getSyncStatusLabel()}
-                 color={getSyncStatusColor() as any}
-                 size="small"
-                 icon={syncStatus === 'syncing' ? <CircularProgress size={20} /> : undefined}
-               />
-               <Button
-                 size="small"
-                 variant="outlined"
-                 onClick={manualSync}
-                 disabled={syncStatus === 'syncing'}
-               >
-                 Sync Now
-               </Button>
-             </Box>
+            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip
+                label={getSyncStatusLabel()}
+                color={getSyncStatusColor() as any}
+                size="small"
+                icon={syncStatus === 'syncing' ? <CircularProgress size={20} /> : undefined}
+                sx={{ animation: syncStatus === 'syncing' ? 'pulse 2s infinite' : 'none' }}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={manualSync}
+                disabled={syncStatus === 'syncing'}
+              >
+                Sync Now
+              </Button>
+            </Box>
           </Box>
         )}
 
-         <Paper sx={{ borderRadius: 2 }}>
-           <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
-             {tabs.map((tab, index) => (
-               <Tab key={index} label={tab.label} />
-             ))}
-           </Tabs>
+        {/* Tabs Container */}
+        <Paper
+          sx={{
+            borderRadius: 2,
+            animation: 'slideInUp 0.7s ease-out',
+            overflow: 'hidden',
+          }}
+        >
+          <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
+            {tabs.map((tab, index) => (
+              <Tab key={index} label={tab.label} />
+            ))}
+          </Tabs>
 
-           <Box sx={{ p: 3 }}>
-             {tabs[activeTab].component}
-           </Box>
-         </Paper>
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+            {tabs[activeTab].component}
+          </Box>
+        </Paper>
 
-          <Snackbar
-            open={showToast}
-            autoHideDuration={4000}
+        {/* Toast Notifications */}
+        <Snackbar
+          open={showToast}
+          autoHideDuration={4000}
+          onClose={() => setShowToast(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert
             onClose={() => setShowToast(false)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            severity={toastSeverity}
+            sx={{
+              width: '100%',
+              animation: 'slideInUp 0.3s ease-out',
+            }}
           >
-            <Alert
-              onClose={() => setShowToast(false)}
-              severity={toastSeverity}
-              sx={{ width: '100%' }}
-            >
-              {toastMessage}
-            </Alert>
-          </Snackbar>
+            {toastMessage}
+          </Alert>
+        </Snackbar>
 
-          {conflictState && (
-            <ConflictResolutionDialog
-              open={conflictState.open}
-              localIsNewer={conflictState.localIsNewer}
-              onKeepLocal={() => handleConflictResolution(false)}
-              onUseCloud={() => handleConflictResolution(true)}
-            />
-          )}
-        </Container>
-     </ThemeProvider>
+        {/* Conflict Resolution Dialog */}
+        {conflictState && (
+          <ConflictResolutionDialog
+            open={conflictState.open}
+            localIsNewer={conflictState.localIsNewer}
+            onKeepLocal={() => handleConflictResolution(false)}
+            onUseCloud={() => handleConflictResolution(true)}
+          />
+        )}
+      </Container>
+    </ThemeProvider>
   );
 }
 
