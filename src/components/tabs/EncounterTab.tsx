@@ -16,6 +16,10 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -41,6 +45,7 @@ export default function EncounterTab() {
     adjustAbility,
     removeAbility,
     updateCondition,
+    updateCharacterNotes,
     startCombat,
     nextTurn,
     previousTurn,
@@ -61,6 +66,8 @@ export default function EncounterTab() {
 
   const [adjustments, setAdjustments] = useState<Record<number, number>>({});
   const [abilityInputs, setAbilityInputs] = useState<Record<number, { name: string; max: string }>>({});
+  const [noteEdits, setNoteEdits] = useState<Record<number, string>>({});
+  const [noteModalOpen, setNoteModalOpen] = useState<number | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -80,6 +87,7 @@ export default function EncounterTab() {
         charStatus: formData.charStatus.trim(),
         ac: formData.ac ? parseInt(formData.ac) : null,
         abilities: [],
+        notes: '',
       };
 
       addCharacter(newChar);
@@ -544,6 +552,24 @@ export default function EncounterTab() {
                   </Box>
                 </Box>
 
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => {
+                    if (noteEdits[char.originalIndex] === undefined) {
+                      setNoteEdits((prev) => ({
+                        ...prev,
+                        [char.originalIndex]: char.notes ?? '',
+                      }));
+                    }
+                    setNoteModalOpen(char.originalIndex);
+                  }}
+                  sx={{ mb: 1 }}
+                >
+                  View/Edit Notes
+                </Button>
+
                 <TextField
                   fullWidth
                   type="text"
@@ -561,6 +587,64 @@ export default function EncounterTab() {
           );
         })}
       </Box>
+
+      {/* Notes Modal Dialog */}
+      <Dialog
+        open={noteModalOpen !== null}
+        onClose={() => setNoteModalOpen(null)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '90vh',
+          }
+        }}
+      >
+        <DialogTitle>
+          Notes for {noteModalOpen !== null ? encounter[noteModalOpen]?.name : ''}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            rows={30}
+            placeholder="Paste monster stat block or notes here..."
+            value={noteModalOpen !== null ? (noteEdits[noteModalOpen] ?? encounter[noteModalOpen]?.notes ?? '') : ''}
+            onChange={(e) => {
+              if (noteModalOpen !== null) {
+                setNoteEdits((prev) => ({
+                  ...prev,
+                  [noteModalOpen]: e.target.value,
+                }));
+              }
+            }}
+            sx={{
+              '& .MuiInputBase-root': {
+                fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                fontSize: '0.9rem',
+                lineHeight: 1.5,
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNoteModalOpen(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (noteModalOpen !== null) {
+                const text = noteEdits[noteModalOpen] ?? encounter[noteModalOpen]?.notes ?? '';
+                updateCharacterNotes(noteModalOpen, text);
+                setNoteModalOpen(null);
+              }
+            }}
+          >
+            Save Notes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

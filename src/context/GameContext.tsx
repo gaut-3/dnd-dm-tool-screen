@@ -11,6 +11,7 @@ export interface Character {
   charStatus: string;
   ac: number | null;
   abilities: Ability[];
+  notes: string;
 }
 
 export interface Ability {
@@ -74,7 +75,8 @@ interface GameContextType extends GameState {
   removeAbility: (charIndex: number, abilityIndex: number) => void;
   adjustAbility: (charIndex: number, abilityIndex: number, delta: number) => void;
    updateCondition: (index: number, condition: string) => void;
-   toggleSort: () => void;
+   updateCharacterNotes: (index: number, notes: string) => void;
+    toggleSort: () => void;
    startCombat: () => void;
    nextTurn: () => void;
    previousTurn: () => void;
@@ -471,6 +473,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return { ...prev, encounter: updated };
       });
     },
+    updateCharacterNotes: (index, notes) => {
+      setState((prev) => {
+        const updated = [...prev.encounter];
+        updated[index] = { ...updated[index], notes };
+        return { ...prev, encounter: updated };
+      });
+    },
      toggleSort: () => {
        setState((prev) => ({
          ...prev,
@@ -735,6 +744,7 @@ export function playerToCharacter(player: Player): Character {
     charStatus: '',
     ac: player.ac,
     abilities: [],
+    notes: '',
   };
 }
 
