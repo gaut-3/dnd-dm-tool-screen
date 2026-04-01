@@ -24,6 +24,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useGame, Character, playerToCharacter } from '../../context/GameContext';
 
 type FormMode = 'manual' | 'fromPlayers';
@@ -552,23 +553,35 @@ export default function EncounterTab() {
                   </Box>
                 </Box>
 
-                <Button
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  onClick={() => {
-                    if (noteEdits[char.originalIndex] === undefined) {
-                      setNoteEdits((prev) => ({
-                        ...prev,
-                        [char.originalIndex]: char.notes ?? '',
-                      }));
-                    }
-                    setNoteModalOpen(char.originalIndex);
-                  }}
-                  sx={{ mb: 1 }}
-                >
-                  View/Edit Notes
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    onClick={() => {
+                      if (noteEdits[char.originalIndex] === undefined) {
+                        setNoteEdits((prev) => ({
+                          ...prev,
+                          [char.originalIndex]: char.notes ?? '',
+                        }));
+                      }
+                      setNoteModalOpen(char.originalIndex);
+                    }}
+                  >
+                    View/Edit Notes
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      window.open(`/notes/${char.originalIndex}`, '_blank');
+                    }}
+                    sx={{ minWidth: 'auto', px: 1 }}
+                    title="Open notes in new tab (read-only)"
+                  >
+                    <OpenInNewIcon fontSize="small" />
+                  </Button>
+                </Box>
 
                 <TextField
                   fullWidth

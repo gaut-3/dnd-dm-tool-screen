@@ -1,4 +1,5 @@
 import { useState, useEffect, ReactNode } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -30,8 +31,10 @@ import NPCNameGeneratorTab from './components/tabs/NPCNameGeneratorTab';
 import DataTab from './components/tabs/DataTab';
 import ConflictResolutionDialog from './components/ConflictResolutionDialog';
 import LoginPage from './pages/LoginPage';
+import NotesViewPage from './pages/NotesViewPage';
 import logoUrl from '../backgrounds/logo.png';
 import { createAppTheme } from './theme';
+
 
 function AppContent() {
   const { darkMode, toggleDarkMode, syncStatus, syncError, syncDidUpload, manualSync, conflictState, handleConflictResolution } = useGame();
@@ -287,7 +290,12 @@ function AppWithAuth() {
      return <LoginPage />;
    }
  
-   return <AppContent />;
+   return (
+     <Routes>
+       <Route path="/" element={<AppContent />} />
+       <Route path="/notes/:characterIndex" element={<NotesViewPage />} />
+     </Routes>
+   );
 }
 
 /**
